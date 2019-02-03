@@ -7,18 +7,13 @@ use Symfony\Component\HttpFoundation\Response;
  * @param null $basePath
  * @throws \ErkinApp\Exceptions\ErkinAppException
  */
-function handleApp($basePath = null)
+function handleApp()
 {
-    if ($basePath === null && !defined('BASE_PATH')) {
-        throw new \ErkinApp\Exceptions\ErkinAppException("Base path required !");
+    if (!defined('BASE_PATH')) {
+        throw new \ErkinApp\Exceptions\ErkinAppException("BASE_PATH is not defined !");
     }
-    $basePath = $basePath === null ? BASE_PATH : $basePath;
 
-    require_once $basePath . '/app/config.php';
-    $loader = require $basePath . '/vendor/autoload.php';
-
-    define('LANGUAGE_PATH', $basePath . '/languages');
-
+    define('LANGUAGE_PATH', BASE_PATH . '/languages');
 
     $whoops = new \Whoops\Run;
     $whoops->pushHandler(new \Whoops\Handler\PlainTextHandler());
@@ -80,7 +75,7 @@ function handleApp($basePath = null)
             ]);
     }
 
-    require_once $basePath . '/app/events.php';
+    require_once BASE_PATH . '/app/events.php';
 
     $app->setCurrentArea($area);
     $app->setCurrentContoller($classname);
