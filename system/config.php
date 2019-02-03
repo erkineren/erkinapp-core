@@ -3,6 +3,7 @@
 
 /**
  * Default Route Controllers
+ *
  */
 if (!defined('ROUTE_FRONTEND_DEFAULT_CONTROLLER'))
     define('ROUTE_FRONTEND_DEFAULT_CONTROLLER', 'Index');
