@@ -1,0 +1,49 @@
+{
+  "name": "erkineren/erkinapp",
+  "type": "library",
+  "description": "A Multipurpose PHP Framework Core",
+  "keywords": [
+    "erkinapp",
+    "framework"
+  ],
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Erkin Eren",
+      "email": "ernerkin@gmail.com"
+    }
+  ],
+  "config": {
+    "platform": {
+      "php": "7.2"
+    }
+  },
+  "minimum-stability": "stable",
+  "require": {
+    "php": ">=7.2",
+    "envms/fluentpdo": "^2.1.0",
+    "symfony/http-foundation": "^4.2",
+    "symfony/http-kernel": "^4.2",
+    "symfony/routing": "^4.2",
+    "symfony/event-dispatcher": "^4.2",
+    "filp/whoops": "^2.3",
+    "php-curl-class/php-curl-class": "^8.4",
+    "phpmailer/phpmailer": "^6.0",
+    "danielstjules/stringy": "^3.1",
+    "cocur/slugify": "^3.1",
+    "guzzlehttp/guzzle": "^6.3",
+    "ext-zip": "*",
+    "ext-pdo": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "ErkinApp\\": "system/core"
+    },
+    "classmap": [
+      "system/libraries/"
+    ],
+    "files": [
+      "system/include.php"
+    ]
+  }
+}
