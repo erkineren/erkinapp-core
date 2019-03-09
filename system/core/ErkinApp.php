@@ -134,10 +134,6 @@ class ErkinApp implements HttpKernelInterface
 
         $this->request = $request;
 
-        /** @var RequestEvent $requestEvent */
-        $requestEvent = $this->dispatcher->dispatch(Events::REQUEST, new RequestEvent($this->request));
-
-
         // create a context using the current request
         $context = new RequestContext();
         $context->fromRequest($this->request);
@@ -147,6 +143,8 @@ class ErkinApp implements HttpKernelInterface
         try {
             $attributes = $matcher->match($this->request->getPathInfo());
 
+            /** @var RequestEvent $requestEvent */
+            $requestEvent = $this->dispatcher->dispatch(Events::REQUEST, new RequestEvent($this->request));
 
             $controller = $attributes['controller'];
 
@@ -376,10 +374,17 @@ class ErkinApp implements HttpKernelInterface
     }
 
     /**
+     * @return RouteCollection
+     */
+    public function Routes(): RouteCollection
+    {
+        return $this->routes;
+    }
+
+    /**
      * @return mixed
      */
-    public
-    function getCurrentArea()
+    public function getCurrentArea()
     {
         return $this->currentArea;
     }
@@ -387,8 +392,7 @@ class ErkinApp implements HttpKernelInterface
     /**
      * @param mixed $currentArea
      */
-    public
-    function setCurrentArea($currentArea)
+    public function setCurrentArea($currentArea)
     {
         $this->currentArea = $currentArea;
     }
@@ -396,8 +400,7 @@ class ErkinApp implements HttpKernelInterface
     /**
      * @return mixed
      */
-    public
-    function getCurrentContoller()
+    public function getCurrentContoller()
     {
         return $this->currentContoller;
     }
@@ -405,8 +408,7 @@ class ErkinApp implements HttpKernelInterface
     /**
      * @param mixed $currentContoller
      */
-    public
-    function setCurrentContoller($currentContoller)
+    public function setCurrentContoller($currentContoller)
     {
         $this->currentContoller = $currentContoller;
     }
@@ -414,8 +416,7 @@ class ErkinApp implements HttpKernelInterface
     /**
      * @return mixed
      */
-    public
-    function getCurrentMethod()
+    public function getCurrentMethod()
     {
         return $this->currentMethod;
     }
@@ -423,8 +424,7 @@ class ErkinApp implements HttpKernelInterface
     /**
      * @param mixed $currentMethod
      */
-    public
-    function setCurrentMethod($currentMethod)
+    public function setCurrentMethod($currentMethod)
     {
         $this->currentMethod = $currentMethod;
     }
@@ -432,8 +432,7 @@ class ErkinApp implements HttpKernelInterface
     /**
      * @return mixed
      */
-    public
-    function getCurrentMethodArgs()
+    public function getCurrentMethodArgs()
     {
         return $this->currentMethodArgs;
     }
@@ -441,26 +440,22 @@ class ErkinApp implements HttpKernelInterface
     /**
      * @param mixed $currentMethodArgs
      */
-    public
-    function setCurrentMethodArgs($currentMethodArgs)
+    public function setCurrentMethodArgs($currentMethodArgs)
     {
         $this->currentMethodArgs = $currentMethodArgs;
     }
 
-    public
-    function getCurrentContollerShortName()
+    public function getCurrentContollerShortName()
     {
         return get_class_short_name($this->currentContoller);
     }
 
-    public
-    function getCurrentActionMethodPath()
+    public function getCurrentActionMethodPath()
     {
         if ($this->getCurrentArea() == 'Frontend')
             return strtolower(get_class_short_name($this->currentContoller)) . '/' . $this->getCurrentMethod();
         else
             return strtolower($this->getCurrentArea()) . '/' . strtolower(get_class_short_name($this->currentContoller)) . '/' . $this->getCurrentMethod();
     }
-
 
 }

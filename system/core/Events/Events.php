@@ -15,4 +15,5 @@ class Events
     const RESPONSE = 'onResponse';
     const API_BASIC_AUTHENTICATION = 'onApiBasicAuthentication';
     const CHECK_LOGGED_IN_STATUS = 'onCheckLoggedInStatus';
+    const REQUEST_BEFORE_ROUTING = 'onRequestBeforeRouting';
 }
