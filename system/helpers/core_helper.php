@@ -72,22 +72,21 @@ function handleApp()
 
     $classname = 'Application\\Controller\\' . $area . '\\' . $controller;
 
+    if (!$app->Routes()->get($request->getPathInfo())) {
+        if (!class_exists($classname)) {
 
-    if (!class_exists($classname) && !$app->Routes()->get($request->getPathInfo())) {
-
-        (new Response())
-            ->setStatusCode(Response::HTTP_BAD_REQUEST)
-            ->setContent("Class <strong> {$classname} </strong> not found for route (" . $request->getPathInfo() . ")!")
-            ->send();
-        die;
+            (new Response())
+                ->setStatusCode(Response::HTTP_BAD_REQUEST)
+                ->setContent("Class <strong> {$classname} </strong> not found for route (" . $request->getPathInfo() . ")!")
+                ->send();
+            die;
+        }
+        $app->map($request->getPathInfo(),
+            [
+                $classname,
+                $method
+            ]);
     }
-
-    $app->map($request->getPathInfo(),
-        [
-            $classname,
-            $method
-        ]);
-
 
     $app->setCurrentArea($area);
     $app->setCurrentContoller($classname);
