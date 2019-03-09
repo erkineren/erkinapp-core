@@ -12,8 +12,9 @@ function handleApp()
     if (!defined('BASE_PATH')) {
         throw new \ErkinApp\Exceptions\ErkinAppException("BASE_PATH is not defined !");
     }
-
-    define('LANGUAGE_PATH', BASE_PATH . '/languages');
+    if (!defined('LANGUAGE_PATH')) {
+        throw new \ErkinApp\Exceptions\ErkinAppException("LANGUAGE_PATH is not defined !");
+    }
 
     $whoops = new \Whoops\Run;
     $whoops->pushHandler(new \Whoops\Handler\PlainTextHandler());
