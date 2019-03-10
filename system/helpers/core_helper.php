@@ -32,7 +32,7 @@ function handleApp()
     require_once APP_PATH . '/events.php';
 
 
-    $app->Dispatcher()->dispatch(Events::REQUEST_BEFORE_ROUTING, new RoutingEvent($request));
+    $app->Dispatcher()->dispatch(Events::ROUTING, new RoutingEvent($request));
 
 
     $paths = explode('/', $request->getPathInfo());
