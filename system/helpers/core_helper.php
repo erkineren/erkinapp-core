@@ -2,7 +2,7 @@
 
 use ErkinApp\ErkinApp;
 use ErkinApp\Events\Events;
-use ErkinApp\Events\RequestBeforeRoutingEvent;
+use ErkinApp\Events\RoutingEvent;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -32,7 +32,7 @@ function handleApp()
     require_once APP_PATH . '/events.php';
 
 
-    $app->Dispatcher()->dispatch(Events::REQUEST_BEFORE_ROUTING, new RequestBeforeRoutingEvent($request));
+    $app->Dispatcher()->dispatch(Events::REQUEST_BEFORE_ROUTING, new RoutingEvent($request));
 
 
     $paths = explode('/', $request->getPathInfo());

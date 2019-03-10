@@ -12,7 +12,7 @@ namespace ErkinApp\Events;
 use Symfony\Component\EventDispatcher\Event;
 use Symfony\Component\HttpFoundation\Request;
 
-class RequestBeforeRoutingEvent extends Event
+class RoutingEvent extends Event
 {
 
     protected $request;
