@@ -76,7 +76,7 @@ function handleApp()
         if (!class_exists($classname)) {
 
             (new Response())
-                ->setStatusCode(Response::HTTP_BAD_REQUEST)
+                ->setStatusCode(Response::HTTP_NOT_FOUND)
                 ->setContent("Class <strong> {$classname} </strong> not found for route (" . $request->getPathInfo() . ")!")
                 ->send();
             die;
