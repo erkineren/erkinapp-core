@@ -6,7 +6,7 @@
  * Time: 22:50
  */
 
-function splitCamelCase($input)
+function split_camel_case($input)
 {
     return preg_split(
         '/(^[^A-Z]+|[A-Z][^A-Z]+)/',
@@ -17,8 +17,7 @@ function splitCamelCase($input)
     );
 }
 
-
-function cleanInput($input)
+function clean_input($input)
 {
 
     $search = array(
@@ -42,7 +41,7 @@ function sanitize($input)
         if (get_magic_quotes_gpc()) {
             $input = stripslashes($input);
         }
-        $input = cleanInput($input);
+        $input = clean_input($input);
         $output = addslashes($input);
     }
     return $output;
@@ -105,4 +104,31 @@ function is_only_numeric($input)
 function is_alpha_numeric_with_dash($input)
 {
     return preg_match('/^[a-zA-Z0-9-_]+$/i', $input);
+}
+
+function slugify($text)
+{
+    // replace non letter or digits by -
+    $text = preg_replace('~[^\pL\d]+~u', '-', $text);
+
+    // transliterate
+    $text = iconv('utf-8', 'us-ascii//TRANSLIT', $text);
+
+    // remove unwanted characters
+    $text = preg_replace('~[^-\w]+~', '', $text);
+
+    // trim
+    $text = trim($text, '-');
+
+    // remove duplicate -
+    $text = preg_replace('~-+~', '-', $text);
+
+    // lowercase
+    $text = strtolower($text);
+
+    if (empty($text)) {
+        return 'n-a';
+    }
+
+    return $text;
 }

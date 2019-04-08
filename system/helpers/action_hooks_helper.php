@@ -2,7 +2,6 @@
 
 
 class Action_hooks
-// Instance of class
 {
     public static $hooks_instance;
 

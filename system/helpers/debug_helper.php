@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: erkin
- * Date: 26.11.2018
- * Time: 21:26
- */
 
 function _yaz($data, $die = true)
 {

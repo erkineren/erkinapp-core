@@ -62,3 +62,9 @@ function is_current_action_path($actionMethodPath)
 {
     return ErkinApp::getInstance()->getCurrentActionMethodPath() == $actionMethodPath;
 }
+
+function is_current_controller_path($controllerPath)
+{
+    return ErkinApp::getInstance()->getCurrentContollerPath() == strtolower($controllerPath);
+}
+

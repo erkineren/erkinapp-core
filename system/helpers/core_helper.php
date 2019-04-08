@@ -142,4 +142,35 @@ function getUserApi($key = '')
     return ErkinApp()->UserApi($key);
 }
 
+if (!function_exists('getView')) {
+    function getView($__filename, $__data = [])
+    {
+        $__filename = ltrim($__filename, '/');
 
+        $viewfile = APP_PATH . "/View/";
+        if (!s($__filename)->startsWithAny(['Frontend', 'Backend', 'Api'])) {
+            $viewfile .= ErkinApp()->getCurrentArea();
+        }
+        $viewfile .= "/$__filename.php";
+
+        if (!file_exists($viewfile)) return false;
+
+
+        if (is_array($__data))
+            extract($__data);
+
+        ob_start();
+        include $viewfile;
+        return ob_get_clean();
+    }
+}
+
+if (!function_exists('loadLibrary')) {
+    function loadLibrary($path)
+    {
+        $filename = BASE_PATH . '/libraries/' . ltrim($path, '/');
+        if (!file_exists($filename)) return false;
+
+        include_once $filename;
+    }
+}
