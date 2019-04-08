@@ -1,10 +1,5 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: erkin
- * Date: 18.11.2018
- * Time: 22:48
- */
+
 
 namespace ErkinApp;
 

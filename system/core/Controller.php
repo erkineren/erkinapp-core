@@ -1,23 +1,14 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: erkin
- * Date: 18.11.2018
- * Time: 13:18
- */
 
 namespace ErkinApp;
 
 
 use Envms\FluentPDO\Query;
-use Symfony\Component\EventDispatcher\Event;
 use Symfony\Component\EventDispatcher\EventDispatcher;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\Session\SessionBagInterface;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 
 /**
@@ -88,7 +79,7 @@ abstract class Controller
          */
         if (strpos($name, 'model') === 0) {
 
-            $parts = splitCamelCase($name);
+            $parts = split_camel_case($name);
             if (count($parts) == 2) {
                 $parts[2] = $parts[1]; // Slide forward model name
                 $parts[1] = ucfirst($this->area); // add own area name before model name
@@ -236,14 +227,20 @@ abstract class Controller
         return $this->request->getMethod() == 'POST';
     }
 
-    public function _post($key, $default = null)
+    public function _post($key = null, $default = null)
     {
-        return ErkinApp()->RequestPost()->get($key, $default);
+        if ($key)
+            return ErkinApp()->RequestPost()->get($key, $default);
+
+        return ErkinApp()->RequestPost()->all();
     }
 
-    public function _get($key, $default = null)
+    public function _get($key = null, $default = null)
     {
-        return ErkinApp()->RequestGet()->get($key, $default);
+        if ($key)
+            return ErkinApp()->RequestGet()->get($key, $default);
+
+        return ErkinApp()->RequestGet()->all();
     }
 
     /**

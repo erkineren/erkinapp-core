@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: erkin
- * Date: 17.09.2018
- * Time: 15:42
- */
 
 namespace ErkinApp;
 
@@ -466,5 +460,14 @@ class ErkinApp implements HttpKernelInterface
         else
             return strtolower($this->getCurrentArea()) . '/' . strtolower(get_class_short_name($this->currentContoller)) . '/' . $this->getCurrentMethod();
     }
+
+    function getCurrentContollerPath()
+    {
+        if ($this->getCurrentArea() == 'Frontend')
+            return strtolower(get_class_short_name($this->getCurrentContoller()));
+        else
+            return strtolower($this->getCurrentArea()) . '/' . strtolower(get_class_short_name($this->getCurrentContoller()));
+    }
+
 
 }
