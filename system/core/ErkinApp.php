@@ -9,12 +9,15 @@
 namespace ErkinApp;
 
 
+use Closure;
 use DateTime;
 use Envms\FluentPDO\Query;
+use ErkinApp\Events\ActionNotFoundEvent;
 use ErkinApp\Events\ControllerActionEvent;
 use ErkinApp\Events\Events;
 use ErkinApp\Events\RequestEvent;
 use ErkinApp\Events\ResponseEvent;
+use Exception;
 use PDO;
 use ReflectionMethod;
 use Symfony\Component\EventDispatcher\EventDispatcher;
@@ -150,9 +153,9 @@ class ErkinApp implements HttpKernelInterface
 
             unset($attributes['controller']);
 
-            if ($requestEvent->isResponse()) {
+            if ($requestEvent->hasResponse()) {
                 $response = $requestEvent->getResponse();
-            } else if ($controller instanceof \Closure) {
+            } else if ($controller instanceof Closure) {
                 $response = call_user_func_array($controller, $attributes);
             } else {
 
@@ -170,7 +173,15 @@ class ErkinApp implements HttpKernelInterface
                 $method = isset($controller[1]) ? $controller[1] : 'index';
 
                 if (!method_exists($ctrl, $method)) {
-                    return new Response("Action method not exist : {$method}");
+                    $actionNotFoundEvent = $this->dispatcher->dispatch(Events::ACTION_NOT_FOUND, new ActionNotFoundEvent($request));
+                    if ($actionNotFoundEvent->hasResponse()) {
+                        return $actionNotFoundEvent->getResponse();
+                    } else {
+                        (new Response())
+                            ->setStatusCode(Response::HTTP_NOT_FOUND)
+                            ->setContent("Action not exist : {$method}")
+                            ->send();
+                    }
                 }
 
                 if (strpos(strtolower($this->request->getPathInfo()), '/' . BACKEND_AREA_NAME) === 0 ||
@@ -187,11 +198,9 @@ class ErkinApp implements HttpKernelInterface
                 $r = new ReflectionMethod($ctrl, $method);
                 $params = $r->getParameters();
                 foreach ($params as $key => $param) {
-
                     if (!isset($method_parameters[$key]) && !$param->isOptional()) {
                         return new Response($param->getName() . " is required");
                     }
-
                 }
 
                 $controllerActionEventName = implode('_', explode("\\", get_class($ctrl))) . '::' . $method;
@@ -225,7 +234,7 @@ class ErkinApp implements HttpKernelInterface
 
             $response = new Response('ResourceNotFoundException: ' . $e1->getMessage(), Response::HTTP_NOT_FOUND);
 
-        } catch (\Exception $e2) {
+        } catch (Exception $e2) {
 //            throw $e2;
             $response = new Response('An error occurred: ' . $e2->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
 

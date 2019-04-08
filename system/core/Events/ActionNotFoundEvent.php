@@ -2,17 +2,18 @@
 /**
  * Created by PhpStorm.
  * User: erkin
- * Date: 17.09.2018
- * Time: 17:30
+ * Date: 10.03.2019
+ * Time: 02:28
  */
 
 namespace ErkinApp\Events;
 
-use Symfony\Component\HttpFoundation\Request;
+
 use Symfony\Component\EventDispatcher\Event;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class RequestEvent extends Event
+class ActionNotFoundEvent extends Event
 {
     /**
      * @var Request
@@ -29,12 +30,6 @@ class RequestEvent extends Event
      * @param Request $request
      */
     public function __construct(Request $request)
-    {
-        $this->request = $request;
-    }
-
-
-    public function setRequest(Request $request)
     {
         $this->request = $request;
     }

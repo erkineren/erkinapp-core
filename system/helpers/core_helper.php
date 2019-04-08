@@ -1,18 +1,22 @@
 <?php
 
 use ErkinApp\ErkinApp;
+use ErkinApp\Events\ControllerNotFoundEvent;
 use ErkinApp\Events\Events;
 use ErkinApp\Events\RoutingEvent;
+use ErkinApp\Exceptions\ErkinAppException;
 use Symfony\Component\HttpFoundation\Response;
+use Whoops\Handler\PlainTextHandler;
+use Whoops\Run;
 
 /**
  * @param null $basePath
- * @throws \ErkinApp\Exceptions\ErkinAppException
+ * @throws ErkinAppException
  */
 function handleApp()
 {
     if (!defined('BASE_PATH')) {
-        throw new \ErkinApp\Exceptions\ErkinAppException("BASE_PATH is not defined !");
+        throw new ErkinAppException("BASE_PATH is not defined !");
     }
     if (!defined('APP_PATH')) {
         define('APP_PATH', BASE_PATH . '/app');
@@ -21,8 +25,8 @@ function handleApp()
         define('LANGUAGE_PATH', BASE_PATH . '/languages');
     }
 
-    $whoops = new \Whoops\Run;
-    $whoops->pushHandler(new \Whoops\Handler\PlainTextHandler());
+    $whoops = new Run;
+    $whoops->pushHandler(new PlainTextHandler());
     $whoops->register();
 
 
@@ -75,10 +79,15 @@ function handleApp()
     if (!$app->Routes()->get($request->getPathInfo())) {
         if (!class_exists($classname)) {
 
-            (new Response())
-                ->setStatusCode(Response::HTTP_NOT_FOUND)
-                ->setContent("Class <strong> {$classname} </strong> not found for route (" . $request->getPathInfo() . ")!")
-                ->send();
+            $controllerNotFoundEvent = $app->Dispatcher()->dispatch(Events::CONTROLLER_NOT_FOUND, new ControllerNotFoundEvent($request));
+            if ($controllerNotFoundEvent->hasResponse()) {
+                $controllerNotFoundEvent->getResponse()->send();
+            } else {
+                (new Response())
+                    ->setStatusCode(Response::HTTP_NOT_FOUND)
+                    ->setContent("Class <strong> {$classname} </strong> not found for route (" . $request->getPathInfo() . ")!")
+                    ->send();
+            }
             die;
         }
         $app->map($request->getPathInfo(),
