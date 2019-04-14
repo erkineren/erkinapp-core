@@ -184,7 +184,7 @@ class ErkinApp implements HttpKernelInterface
                 /*
                  * If default dynamic routing, route and contoller/method strings are similar
                  */
-                if (strpos($attributes['_route'], $ctrl_method_path) !== false) {
+                if (strpos(strtolower($attributes['_route']), strtolower($ctrl_method_path)) !== false) {
 
                     if (strpos(strtolower($this->request->getPathInfo()), '/frontend') === 0 ||
                         strpos(strtolower($this->request->getPathInfo()), '/' . BACKEND_AREA_NAME) === 0 ||
