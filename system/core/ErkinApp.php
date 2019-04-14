@@ -89,7 +89,7 @@ class ErkinApp implements HttpKernelInterface
 
     /**
      * @param $dbkey
-     * @return Query
+     * @return bool|Query
      */
     protected function _loadDb($dbkey)
     {
@@ -100,6 +100,7 @@ class ErkinApp implements HttpKernelInterface
                 DB_CONFIG[$dbkey]['password']
             );
         }
+        return false;
     }
 
     /**
@@ -178,24 +179,46 @@ class ErkinApp implements HttpKernelInterface
                     }
                 }
 
-                if (strpos(strtolower($this->request->getPathInfo()), '/' . BACKEND_AREA_NAME) === 0 ||
-                    strpos(strtolower($this->request->getPathInfo()), '/' . API_AREA_NAME) === 0) {
-                    $method_parameters = array_slice(explode('/', $attributes['_route']), 4);
-                } else {
-                    $method_parameters = array_slice(explode('/', $attributes['_route']), 3);
-                }
+                $ctrl_method_path = strtolower($this->getCurrentContollerShortName()) . '/' . strtolower($method);
 
-                $this->setCurrentMethodArgs($method_parameters);
+                /*
+                 * If default dynamic routing, route and contoller/method strings are similar
+                 */
+                if (strpos($attributes['_route'], $ctrl_method_path) !== false) {
 
-
-                // Parametreleri kontrol et
-                $r = new ReflectionMethod($ctrl, $method);
-                $params = $r->getParameters();
-                foreach ($params as $key => $param) {
-                    if (!isset($method_parameters[$key]) && !$param->isOptional()) {
-                        return new Response($param->getName() . " is required");
+                    if (strpos(strtolower($this->request->getPathInfo()), '/frontend') === 0 ||
+                        strpos(strtolower($this->request->getPathInfo()), '/' . BACKEND_AREA_NAME) === 0 ||
+                        strpos(strtolower($this->request->getPathInfo()), '/' . API_AREA_NAME) === 0) {
+                        $method_parameters = array_slice(explode('/', $attributes['_route']), 4);
+                    } else {
+                        $method_parameters = array_slice(explode('/', $attributes['_route']), 3);
                     }
+
+
+                    // Parametreleri kontrol et
+                    $r = new ReflectionMethod($ctrl, $method);
+                    $params = $r->getParameters();
+                    foreach ($params as $key => $param) {
+                        if (!isset($method_parameters[$key]) && !$param->isOptional()) {
+                            return new Response($param->getName() . " is required");
+                        }
+                    }
+
+                } /*
+                 * If not,
+                 * Custom routing must be handle
+                 * Controller method parameters must be handle properly
+                 */
+                else {
+                    unset($attributes['_route']);
+                    $makeSort = true;
+                    foreach ($attributes as $_key => $attribute) {
+                        if (strpos($_key, '_') === false) $makeSort = false;
+                    }
+                    if ($makeSort) ksort($attributes);
+                    $method_parameters = $attributes;
                 }
+                $this->setCurrentMethodArgs($method_parameters);
 
                 $controllerActionEventName = implode('_', explode("\\", get_class($ctrl))) . '::' . $method;
 
@@ -226,11 +249,15 @@ class ErkinApp implements HttpKernelInterface
 
         } catch (ResourceNotFoundException $e1) {
 
-            $response = new Response('ResourceNotFoundException: ' . $e1->getMessage(), Response::HTTP_NOT_FOUND);
+            $response = new Response('An error occurred ResourceNotFoundException: ' . $e1->getMessage(), Response::HTTP_NOT_FOUND);
+
+        } catch (\ArgumentCountError $e2) {
+//            throw $e2;
+            $response = new Response('An error occurred ArgumentCountError: ' . $e2->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
 
         } catch (Exception $e2) {
 //            throw $e2;
-            $response = new Response('An error occurred: ' . $e2->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
+            $response = new Response('An error occurred ' . get_class_short_name($e2) . ': ' . $e2->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
 
         }
 
@@ -240,14 +267,14 @@ class ErkinApp implements HttpKernelInterface
         return $response;
     }
 
-    public function map($path, $controller)
+    public function map($path, $controller, array $requirements = [], array $options = [], ?string $host = '', $schemes = [], $methods = [], ?string $condition = '')
     {
         $this->routes->add(
             $path,
             new Route(
                 $path,
                 array('controller' => $controller),
-                ['page' => '\d+']
+                $requirements
             )
         );
     }
@@ -450,7 +477,11 @@ class ErkinApp implements HttpKernelInterface
 
     public function getCurrentContollerShortName()
     {
-        return get_class_short_name($this->currentContoller);
+        try {
+            return get_class_short_name($this->currentContoller);
+        } catch (Exception $e) {
+            return $this->currentContoller;
+        }
     }
 
     public function getCurrentActionMethodPath()
@@ -468,6 +499,5 @@ class ErkinApp implements HttpKernelInterface
         else
             return strtolower($this->getCurrentArea()) . '/' . strtolower(get_class_short_name($this->getCurrentContoller()));
     }
-
 
 }

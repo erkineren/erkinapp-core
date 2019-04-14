@@ -76,7 +76,20 @@ function handleApp()
 
     $classname = 'Application\\Controller\\' . $area . '\\' . $controller;
 
-    if (!$app->Routes()->get($request->getPathInfo())) {
+
+//    $compiled_routes = [];
+    $matched = false;
+    foreach ($app->Routes()->all() as $name => $route) {
+        if ($matched = preg_match($route->compile()->getRegex(), $request->getPathInfo())) break;
+    }
+
+    $app->map($request->getPathInfo(),
+        [
+            $classname,
+            $method
+        ]);
+
+    if (!$matched) {
         if (!class_exists($classname)) {
 
             $controllerNotFoundEvent = $app->Dispatcher()->dispatch(Events::CONTROLLER_NOT_FOUND, new ControllerNotFoundEvent($request));
@@ -96,6 +109,7 @@ function handleApp()
                 $method
             ]);
     }
+
 
     $app->setCurrentArea($area);
     $app->setCurrentContoller($classname);
