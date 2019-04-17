@@ -83,11 +83,11 @@ function handleApp()
         if ($matched = preg_match($route->compile()->getRegex(), $request->getPathInfo())) break;
     }
 
-    $app->map($request->getPathInfo(),
-        [
-            $classname,
-            $method
-        ]);
+//    $app->map($request->getPathInfo(),
+//        [
+//            $classname,
+//            $method
+//        ]);
 
     if (!$matched) {
         if (!class_exists($classname)) {
