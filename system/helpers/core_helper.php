@@ -1,8 +1,21 @@
 <?php
 
-namespace ErkinApp\Helpers {
+
+namespace {
 
     use ErkinApp\ErkinApp;
+
+    /**
+     * @return ErkinApp
+     */
+    function ErkinApp()
+    {
+        return ErkinApp::getInstance();
+    }
+}
+
+namespace ErkinApp\Helpers {
+
     use ErkinApp\Events\ControllerNotFoundEvent;
     use ErkinApp\Events\Events;
     use ErkinApp\Events\RoutingEvent;
@@ -121,14 +134,6 @@ namespace ErkinApp\Helpers {
         $response->send();
 
 
-    }
-
-    /**
-     * @return ErkinApp
-     */
-    function ErkinApp()
-    {
-        return ErkinApp::getInstance();
     }
 
     /**

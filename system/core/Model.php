@@ -5,7 +5,6 @@ namespace ErkinApp;
 
 
 use Envms\FluentPDO\Query;
-use function ErkinApp\Helpers\ErkinApp;
 
 
 abstract class Model

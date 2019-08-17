@@ -790,6 +790,7 @@ class simple_html_dom_node
     {
         return $this->find($name, 0);
     }
+
     /*
     function is_utf8($string)
     {

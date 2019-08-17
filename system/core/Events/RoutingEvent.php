@@ -6,7 +6,7 @@ namespace ErkinApp\Events;
 
 use Symfony\Component\EventDispatcher\Event;
 use Symfony\Component\HttpFoundation\Request;
-use function ErkinApp\Helpers\ErkinApp;
+
 
 class RoutingEvent extends Event
 {

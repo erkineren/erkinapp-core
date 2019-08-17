@@ -11,7 +11,6 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
-use function ErkinApp\Helpers\ErkinApp;
 use function ErkinApp\Helpers\get_class_short_name;
 use function ErkinApp\Helpers\split_camel_case;
 
