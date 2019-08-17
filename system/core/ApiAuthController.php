@@ -7,9 +7,6 @@ namespace ErkinApp;
 use ErkinApp\Events\ApiBasicAuthEvent;
 use ErkinApp\Events\Events;
 use ErkinApp\Responses\AjaxResponse;
-use ErkinApp\Responses\PrettyJsonResponse;
-use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Response;
 
 class ApiAuthController extends Controller implements IAuthController
 {

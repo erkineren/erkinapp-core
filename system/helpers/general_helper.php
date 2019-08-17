@@ -1,13 +1,14 @@
 <?php
 
-if (!function_exists('get_class_short_name')) {
+namespace ErkinApp\Helpers {
+
+    use ReflectionClass;
+
     function get_class_short_name($class)
     {
-        return (new \ReflectionClass($class))->getShortName();
+        return (new ReflectionClass($class))->getShortName();
     }
-}
 
-if (!function_exists('get_current_controller_pretty')) {
     /**
      * @return string
      */
@@ -17,9 +18,7 @@ if (!function_exists('get_current_controller_pretty')) {
         if (strtolower($str) == 'index') return '';
         return $str;
     }
-}
 
-if (!function_exists('get_current_method_pretty')) {
     /**
      * @return string
      */
@@ -29,9 +28,7 @@ if (!function_exists('get_current_method_pretty')) {
         if (strtolower($str) == 'index') return '';
         return $str;
     }
-}
 
-if (!function_exists('getFlashBag')) {
     /**
      * @return \Symfony\Component\HttpFoundation\Session\Flash\FlashBag
      */
@@ -39,9 +36,7 @@ if (!function_exists('getFlashBag')) {
     {
         return ErkinApp()->Session()->getFlashBag();
     }
-}
 
-if (!function_exists('set_alert')) {
     /**
      * @param $type
      * @param $message
@@ -50,9 +45,7 @@ if (!function_exists('set_alert')) {
     {
         getFlashBag()->add($type, $message);
     }
-}
 
-if (!function_exists('is_ajax_request')) {
     /**
      * @return bool
      */
@@ -61,3 +54,4 @@ if (!function_exists('is_ajax_request')) {
         return (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest');
     }
 }
+

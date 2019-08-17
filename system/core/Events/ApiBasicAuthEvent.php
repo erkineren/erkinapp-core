@@ -1,16 +1,12 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: erkin
- * Date: 21.11.2018
- * Time: 00:21
- */
+
 
 namespace ErkinApp\Events;
 
 
 use Symfony\Component\EventDispatcher\Event;
 use Symfony\Component\HttpFoundation\Response;
+use function ErkinApp\Helpers\ErkinApp;
 
 class ApiBasicAuthEvent extends Event
 {
@@ -34,14 +30,6 @@ class ApiBasicAuthEvent extends Event
     /**
      * @return mixed
      */
-    public function getAuthUser()
-    {
-        return $this->auth_user;
-    }
-
-    /**
-     * @return mixed
-     */
     public function getAuthPw()
     {
         return $this->auth_pw;
@@ -55,14 +43,14 @@ class ApiBasicAuthEvent extends Event
         return $this->auth_digest;
     }
 
-    public function setResponse(Response $response)
-    {
-        $this->response = $response;
-    }
-
     public function getResponse()
     {
         return $this->response;
+    }
+
+    public function setResponse(Response $response)
+    {
+        $this->response = $response;
     }
 
     public function isResponse()
@@ -89,6 +77,14 @@ class ApiBasicAuthEvent extends Event
             ErkinApp()->Session()->set(SESSION_API_AUTH, $this->getAuthUser());
         } else  ErkinApp()->Session()->remove(SESSION_API_AUTH);
 
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getAuthUser()
+    {
+        return $this->auth_user;
     }
 
 

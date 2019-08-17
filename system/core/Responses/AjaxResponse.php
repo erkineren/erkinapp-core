@@ -9,8 +9,6 @@
 namespace ErkinApp\Responses;
 
 
-use Symfony\Component\HttpFoundation\JsonResponse;
-
 abstract class AjaxResponse extends BaseAjaxResponse
 {
 

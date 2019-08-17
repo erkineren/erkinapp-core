@@ -1,25 +1,40 @@
 <?php
 
-if (!function_exists('renderDatatableResult')) {
-    function renderDatatableResult(\Envms\FluentPDO\Queries\Select $q, \ErkinApp\Controller $controller, Callable $record_callback = null)
+namespace ErkinApp\Helpers {
+
+    use Envms\FluentPDO\Queries\Select;
+    use ErkinApp\Controller;
+
+    function renderDatatableResult(Select $q, Controller $controller, Callable $record_callback = null)
     {
         $recordsTotal = $q->count();
+
 
         $columns = $q->getRawStatements()['SELECT'][0];
         $columns = str_replace('SQL_CALC_FOUND_ROWS', '', $columns);
         $columns = explode(',', $columns);
         $columns = array_map('trim', $columns);
 
+        $columns = array_map(function ($a) {
+            if (strpos($a, ' as ') !== false) $a = explode(' as ', $a)[0];
+            if (strpos($a, ' AS ') !== false) $a = explode(' AS ', $a)[0];
+            return $a;
+        }, $columns);
+
         $search = $controller->_post('search');
+        $where = '';
         if ($search && $search['value']) {
             foreach ($columns as $column) {
-                $q->whereOr("$column LIKE '%{$search['value']}%'");
+                if ($where) $where .= ' OR ';
+                $where .= "$column LIKE '%{$search['value']}%'";
             }
         }
+        $q->where($where);
 
         if ($order = $controller->_post('order')) {
             if (isset($columns[$order[0]['column']])) {
                 $column = $columns[$order[0]['column']];
+
                 $q->orderBy("{$column} {$order[0]['dir']}");
             }
         }

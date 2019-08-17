@@ -1,36 +1,44 @@
 <?php
 
+namespace ErkinApp\Helpers {
 
-/**
- * Remove directory and its contents recursively
- *
- * @param $dir
- */
-function rrmdir($dir)
-{
-    if (is_dir($dir)) {
-        $objects = scandir($dir);
-        foreach ($objects as $object) {
-            if ($object != "." && $object != "..") {
-                if (is_dir($dir . "/" . $object))
-                    rrmdir($dir . "/" . $object);
-                else
-                    unlink($dir . "/" . $object);
+    use ZipArchive;
+
+    /**
+     * Remove directory and its contents recursively
+     *
+     * @param $dir
+     */
+    function rrmdir($dir)
+    {
+        if (is_dir($dir)) {
+            $objects = scandir($dir);
+            foreach ($objects as $object) {
+                if ($object != "." && $object != "..") {
+                    if (is_dir($dir . "/" . $object))
+                        rrmdir($dir . "/" . $object);
+                    else
+                        unlink($dir . "/" . $object);
+                }
             }
+            rmdir($dir);
         }
-        rmdir($dir);
     }
-}
 
-
-function unzip_file($zipfile, $destination = './')
-{
-    $zip = new ZipArchive;
-    $res = $zip->open($zipfile);
-    if ($res === TRUE) {
-        $zip->extractTo($destination);
-        $zip->close();
-        return true;
+    /**
+     * @param $zipfile
+     * @param string $destination
+     * @return bool
+     */
+    function unzip_file($zipfile, $destination = './')
+    {
+        $zip = new ZipArchive;
+        $res = $zip->open($zipfile);
+        if ($res === TRUE) {
+            $zip->extractTo($destination);
+            $zip->close();
+            return true;
+        }
+        return false;
     }
-    return false;
 }

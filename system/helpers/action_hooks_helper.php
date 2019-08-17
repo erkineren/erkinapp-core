@@ -55,7 +55,7 @@ class Action_hooks
                     ];
                 } elseif (is_array($function)) {
                     self::$actions[$name][$priority][get_class($function[0]) . '-' . $function[1]] = [
-                        'class'  => $function[0],
+                        'class' => $function[0],
                         'method' => $function[1],
                     ];
                 }
@@ -68,7 +68,7 @@ class Action_hooks
                 ];
             } elseif (is_array($function)) {
                 self::$actions[$name][$priority][get_class($function[0]) . '-' . $function[1]] = [
-                    'class'  => $function[0],
+                    'class' => $function[0],
                     'method' => $function[1],
                 ];
             }
@@ -200,6 +200,7 @@ class Action_hooks
         return false;
     }
 }
+
 /**
  * Add a new action hook
  *
@@ -211,6 +212,7 @@ function add_action($name, $function, $priority = 10)
 {
     return Action_hooks::instance()->add_action($name, $function, $priority);
 }
+
 /**
  * Run an action
  *
@@ -222,6 +224,7 @@ function do_action($name, $arguments = '')
 {
     return Action_hooks::instance()->do_action($name, $arguments);
 }
+
 /**
  * Remove an action
  *
@@ -233,6 +236,7 @@ function remove_action($name, $function, $priority = 10)
 {
     return Action_hooks::instance()->remove_action($name, $function, $priority);
 }
+
 /**
  * Check if an action exists
  *

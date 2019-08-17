@@ -1,17 +1,12 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: erkin
- * Date: 15.12.2018
- * Time: 22:48
- */
+
 
 namespace ErkinApp\Events;
 
 
-use ErkinApp\ErkinApp;
 use ErkinApp\IAuthController;
 use Symfony\Component\EventDispatcher\Event;
+use function ErkinApp\Helpers\ErkinApp;
 
 class CheckLoggedInStatusEvent extends Event
 {

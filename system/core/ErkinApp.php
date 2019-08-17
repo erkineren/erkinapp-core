@@ -13,6 +13,7 @@ use ErkinApp\Events\RequestEvent;
 use ErkinApp\Events\ResponseEvent;
 use Exception;
 use PDO;
+use Pimple\Container;
 use ReflectionMethod;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -25,6 +26,9 @@ use Symfony\Component\Routing\Matcher\UrlMatcher;
 use Symfony\Component\Routing\RequestContext;
 use Symfony\Component\Routing\Route;
 use Symfony\Component\Routing\RouteCollection;
+use function ErkinApp\Helpers\get_class_short_name;
+use function ErkinApp\Helpers\loadDefaultLanguage;
+use function ErkinApp\Helpers\loadLanguage;
 
 class ErkinApp implements HttpKernelInterface
 {
@@ -46,22 +50,36 @@ class ErkinApp implements HttpKernelInterface
      */
     protected $databases;
 
-    /** @var RouteCollection */
+    /**
+     * @var RouteCollection
+     */
     protected $routes;
-    /** @var EventDispatcher */
+
+    /**
+     * @var EventDispatcher
+     */
     protected $dispatcher;
-    /** @var Request */
+
+    /**
+     * @var Request
+     */
     protected $request;
+
+    /**
+     * @var Container
+     */
+    protected $container;
+
 
     protected $currentArea;
     protected $currentContoller;
     protected $currentMethod;
     protected $currentMethodArgs;
-
     protected $languages;
 
     private function __construct()
     {
+        $this->container = new Container();
         $this->routes = new RouteCollection();
         $this->dispatcher = new EventDispatcher();
 
@@ -76,15 +94,6 @@ class ErkinApp implements HttpKernelInterface
             $this->languages[DEFAULT_LANGUAGE] = loadDefaultLanguage();
         }
 
-    }
-
-    /**
-     * @return ErkinApp
-     */
-    public static function getInstance()
-    {
-        if (self::$instance === null) self::$instance = new self();
-        return self::$instance;
     }
 
     /**
@@ -119,6 +128,15 @@ class ErkinApp implements HttpKernelInterface
         $pdo->exec("SET NAMES 'utf8mb4'; SET CHARSET 'utf8'; SET time_zone='$offset';");
 
         return new Query($pdo);
+    }
+
+    /**
+     * @return ErkinApp
+     */
+    public static function getInstance()
+    {
+        if (self::$instance === null) self::$instance = new self();
+        return self::$instance;
     }
 
     /**
@@ -267,6 +285,15 @@ class ErkinApp implements HttpKernelInterface
         return $response;
     }
 
+    public function getCurrentContollerShortName()
+    {
+        try {
+            return get_class_short_name($this->currentContoller);
+        } catch (Exception $e) {
+            return $this->currentContoller;
+        }
+    }
+
     public function map($path, $controller, array $requirements = [], array $options = [], ?string $host = '', $schemes = [], $methods = [], ?string $condition = '')
     {
         $this->routes->add(
@@ -289,6 +316,11 @@ class ErkinApp implements HttpKernelInterface
         return $this->dispatcher->dispatch($event);
     }
 
+    public function RequestGet()
+    {
+        return $this->Request()->query;
+    }
+
     /**
      * @return Request
      */
@@ -298,11 +330,6 @@ class ErkinApp implements HttpKernelInterface
             $this->request = Request::createFromGlobals();
         }
         return $this->request;
-    }
-
-    public function RequestGet()
-    {
-        return $this->Request()->query;
     }
 
     public function RequestPost()
@@ -332,7 +359,6 @@ class ErkinApp implements HttpKernelInterface
 
         return $this->databases[$dbkey];
     }
-
 
     public function Models($class = '')
     {
@@ -412,51 +438,11 @@ class ErkinApp implements HttpKernelInterface
     }
 
     /**
-     * @return mixed
+     * @return Container
      */
-    public function getCurrentArea()
+    public function Container()
     {
-        return $this->currentArea;
-    }
-
-    /**
-     * @param mixed $currentArea
-     */
-    public function setCurrentArea($currentArea)
-    {
-        $this->currentArea = $currentArea;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getCurrentContoller()
-    {
-        return $this->currentContoller;
-    }
-
-    /**
-     * @param mixed $currentContoller
-     */
-    public function setCurrentContoller($currentContoller)
-    {
-        $this->currentContoller = $currentContoller;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getCurrentMethod()
-    {
-        return $this->currentMethod;
-    }
-
-    /**
-     * @param mixed $currentMethod
-     */
-    public function setCurrentMethod($currentMethod)
-    {
-        $this->currentMethod = $currentMethod;
+        return $this->container;
     }
 
     /**
@@ -475,15 +461,6 @@ class ErkinApp implements HttpKernelInterface
         $this->currentMethodArgs = $currentMethodArgs;
     }
 
-    public function getCurrentContollerShortName()
-    {
-        try {
-            return get_class_short_name($this->currentContoller);
-        } catch (Exception $e) {
-            return $this->currentContoller;
-        }
-    }
-
     public function getCurrentActionMethodPath()
     {
         if ($this->getCurrentArea() == 'Frontend')
@@ -492,12 +469,60 @@ class ErkinApp implements HttpKernelInterface
             return strtolower($this->getCurrentArea()) . '/' . strtolower(get_class_short_name($this->currentContoller)) . '/' . $this->getCurrentMethod();
     }
 
+    /**
+     * @return mixed
+     */
+    public function getCurrentArea()
+    {
+        return $this->currentArea;
+    }
+
+    /**
+     * @param mixed $currentArea
+     */
+    public function setCurrentArea($currentArea)
+    {
+        $this->currentArea = $currentArea;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getCurrentMethod()
+    {
+        return $this->currentMethod;
+    }
+
+    /**
+     * @param mixed $currentMethod
+     */
+    public function setCurrentMethod($currentMethod)
+    {
+        $this->currentMethod = $currentMethod;
+    }
+
     function getCurrentContollerPath()
     {
         if ($this->getCurrentArea() == 'Frontend')
             return strtolower(get_class_short_name($this->getCurrentContoller()));
         else
             return strtolower($this->getCurrentArea()) . '/' . strtolower(get_class_short_name($this->getCurrentContoller()));
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getCurrentContoller()
+    {
+        return $this->currentContoller;
+    }
+
+    /**
+     * @param mixed $currentContoller
+     */
+    public function setCurrentContoller($currentContoller)
+    {
+        $this->currentContoller = $currentContoller;
     }
 
 }

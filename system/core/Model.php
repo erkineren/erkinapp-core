@@ -5,6 +5,8 @@ namespace ErkinApp;
 
 
 use Envms\FluentPDO\Query;
+use function ErkinApp\Helpers\ErkinApp;
+
 
 abstract class Model
 {
@@ -70,16 +72,6 @@ abstract class Model
     }
 
     /**
-     * @param array $values
-     * @return \Envms\FluentPDO\Queries\Insert
-     * @throws \Envms\FluentPDO\Exception
-     */
-    function insert($values = [])
-    {
-        return $this->db->insertInto($this->table_name, $values);
-    }
-
-    /**
      *
      * Use batch operation
      *
@@ -97,14 +89,29 @@ abstract class Model
     }
 
     /**
+     * @return bool
+     */
+    function beginTransaction()
+    {
+        return $this->db->getPdo()->beginTransaction();
+    }
+
+    /**
      * @param array $values
      * @return \Envms\FluentPDO\Queries\Insert
      * @throws \Envms\FluentPDO\Exception
      */
-    function insertOrUpdate($values = [], $onDuplicateKeyUpdateValues = [])
+    function insert($values = [])
     {
-        if (!$onDuplicateKeyUpdateValues) $onDuplicateKeyUpdateValues = $values;
-        return $this->db->insertInto($this->table_name, $values)->onDuplicateKeyUpdate($onDuplicateKeyUpdateValues);
+        return $this->db->insertInto($this->table_name, $values);
+    }
+
+    /**
+     * @return bool
+     */
+    function commit()
+    {
+        return $this->db->getPdo()->commit();
     }
 
     /**
@@ -125,6 +132,17 @@ abstract class Model
     }
 
     /**
+     * @param array $values
+     * @return \Envms\FluentPDO\Queries\Insert
+     * @throws \Envms\FluentPDO\Exception
+     */
+    function insertOrUpdate($values = [], $onDuplicateKeyUpdateValues = [])
+    {
+        if (!$onDuplicateKeyUpdateValues) $onDuplicateKeyUpdateValues = $values;
+        return $this->db->insertInto($this->table_name, $values)->onDuplicateKeyUpdate($onDuplicateKeyUpdateValues);
+    }
+
+    /**
      * @param array $set
      * @param null $primary_key
      * @return \Envms\FluentPDO\Queries\Update
@@ -133,22 +151,6 @@ abstract class Model
     function update($set = [], $primary_key = null)
     {
         return $this->db->update($this->table_name, $set, $primary_key);
-    }
-
-    /**
-     * @return bool
-     */
-    function beginTransaction()
-    {
-        return $this->db->getPdo()->beginTransaction();
-    }
-
-    /**
-     * @return bool
-     */
-    function commit()
-    {
-        return $this->db->getPdo()->commit();
     }
 
     function getLastInsertId()

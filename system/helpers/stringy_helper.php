@@ -1,9 +1,15 @@
 <?php
-/**
- * @param $str
- * @return \Stringy\Stringy
- */
-function s($str)
-{
-    return \Stringy\Stringy::create($str);
+
+namespace ErkinApp\Helpers {
+
+    use Stringy\Stringy;
+
+    /**
+     * @param $str
+     * @return Stringy
+     */
+    function s($str)
+    {
+        return Stringy::create($str);
+    }
 }

@@ -4,12 +4,16 @@ namespace ErkinApp;
 
 
 use Envms\FluentPDO\Query;
+use Pimple\Container;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
+use function ErkinApp\Helpers\ErkinApp;
+use function ErkinApp\Helpers\get_class_short_name;
+use function ErkinApp\Helpers\split_camel_case;
 
 /**
  * Class Controller
@@ -22,6 +26,7 @@ use Symfony\Component\HttpFoundation\Session\SessionInterface;
  * @property Model[] $models
  * @property string $area
  * @property Query $db
+ * @property Container $container
  */
 abstract class Controller
 {
@@ -66,6 +71,8 @@ abstract class Controller
                 return ErkinApp()->getCurrentArea();
             case 'db':
                 return ErkinApp()->DB('default');
+            case 'container':
+                return ErkinApp()->Container();
         }
 
 
@@ -92,6 +99,7 @@ abstract class Controller
             return ErkinApp()->Models($modelclass);
         }
 
+        return ErkinApp()->Container()->offsetGet($name);
     }
 
 
@@ -121,6 +129,11 @@ abstract class Controller
     public function dispatch($eventName)
     {
         return $this->dispatcher->dispatch($eventName);
+    }
+
+    public function renderViewPlain($__view = '', $__data = [])
+    {
+        return $this->renderView($__view, $__data, false);
     }
 
     public function renderView($__view = '', $__data = [], $includeParts = true)
@@ -168,11 +181,6 @@ abstract class Controller
         return new Response(ob_get_clean());
     }
 
-    public function renderViewPlain($__view = '', $__data = [])
-    {
-        return $this->renderView($__view, $__data, false);
-    }
-
     public function renderViews(array $views, $includeParts = true)
     {
 
@@ -201,14 +209,6 @@ abstract class Controller
         return new Response(ob_get_clean());
     }
 
-    public function redirect($path = '')
-    {
-        if (strpos($path, 'http') === false && strpos($path, '://') === false)
-            $path = $this->request->getBasePath() . '/' . $path;
-
-        return new RedirectResponse($path);
-    }
-
     public function redirectMe()
     {
         return new RedirectResponse($this->request->getBasePath() . $this->request->getPathInfo());
@@ -220,6 +220,14 @@ abstract class Controller
             return $this->redirect($_SERVER['HTTP_REFERER']);
 
         return $this->redirect();
+    }
+
+    public function redirect($path = '')
+    {
+        if (strpos($path, 'http') === false && strpos($path, '://') === false)
+            $path = $this->request->getBasePath() . '/' . $path;
+
+        return new RedirectResponse($path);
     }
 
     public function isPost()

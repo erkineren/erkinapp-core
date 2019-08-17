@@ -1,87 +1,89 @@
 <?php
 
-use ErkinApp\ErkinApp;
-use ErkinApp\Events\ControllerNotFoundEvent;
-use ErkinApp\Events\Events;
-use ErkinApp\Events\RoutingEvent;
-use ErkinApp\Exceptions\ErkinAppException;
-use Symfony\Component\HttpFoundation\Response;
-use Whoops\Handler\PlainTextHandler;
-use Whoops\Run;
+namespace ErkinApp\Helpers {
 
-/**
- * @param null $basePath
- * @throws ErkinAppException
- */
-function handleApp()
-{
-    if (!defined('BASE_PATH')) {
-        throw new ErkinAppException("BASE_PATH is not defined !");
-    }
-    if (!defined('APP_PATH')) {
-        define('APP_PATH', BASE_PATH . '/app');
-    }
-    if (!defined('LANGUAGE_PATH')) {
-        define('LANGUAGE_PATH', BASE_PATH . '/languages');
-    }
+    use ErkinApp\ErkinApp;
+    use ErkinApp\Events\ControllerNotFoundEvent;
+    use ErkinApp\Events\Events;
+    use ErkinApp\Events\RoutingEvent;
+    use ErkinApp\Exceptions\ErkinAppException;
+    use Symfony\Component\HttpFoundation\Response;
+    use Whoops\Handler\PlainTextHandler;
+    use Whoops\Run;
 
-    $whoops = new Run;
-    $whoops->pushHandler(new PlainTextHandler());
-    $whoops->register();
+    /**
+     * @param null $basePath
+     * @throws ErkinAppException
+     */
+    function handleApp()
+    {
+        if (!defined('BASE_PATH')) {
+            throw new ErkinAppException("BASE_PATH is not defined !");
+        }
+        if (!defined('APP_PATH')) {
+            define('APP_PATH', BASE_PATH . '/app');
+        }
+        if (!defined('LANGUAGE_PATH')) {
+            define('LANGUAGE_PATH', BASE_PATH . '/languages');
+        }
 
-
-    // Our framework is being handling itself
-    $app = ErkinApp();
-    $request = $app->Request();
-    require_once APP_PATH . '/events.php';
+        $whoops = new Run;
+        $whoops->pushHandler(new PlainTextHandler());
+        $whoops->register();
 
 
-    $app->Dispatcher()->dispatch(Events::ROUTING, new RoutingEvent($request));
+        // Our framework is being handling itself
+        $app = ErkinApp();
+        $request = $app->Request();
+        require_once APP_PATH . '/events.php';
 
 
-    $paths = explode('/', $request->getPathInfo());
-
-    if (count($paths) < 2 && !$app->Routes()->get($request->getPathInfo())) {
-        (new Response())
-            ->setStatusCode(Response::HTTP_BAD_REQUEST)
-            ->setContent("Route error")->send();
-        die;
-    }
-
-    $area = 'Frontend';
-    $defaultController = ROUTE_FRONTEND_DEFAULT_CONTROLLER;
-    $defaultMethod = ROUTE_FRONTEND_DEFAULT_METHOD;
-
-    switch (strtolower($paths[1])) {
-        case strtolower(BACKEND_AREA_NAME):
-            $area = 'Backend';
-            $defaultController = ROUTE_BACKEND_DEFAULT_CONTROLLER;
-            $defaultMethod = ROUTE_BACKEND_DEFAULT_METHOD;
-            break;
-        case 'api':
-            $area = 'Api';
-            $defaultController = ROUTE_API_DEFAULT_CONTROLLER;
-            $defaultMethod = ROUTE_API_DEFAULT_METHOD;
-            break;
-    }
-
-    if (in_array(strtolower($paths[1]), ['frontend', strtolower(BACKEND_AREA_NAME), strtolower(API_AREA_NAME)])) {
-        $controller = !empty($paths[2]) ? ucfirst(strtolower($paths[2])) : $defaultController;
-        $method = isset($paths[3]) && !empty($paths[3]) ? $paths[3] : $defaultMethod;
-    } else {
-        $controller = !empty($paths[1]) ? ucfirst(strtolower($paths[1])) : $defaultController;
-        $method = isset($paths[2]) && !empty($paths[2]) ? $paths[2] : $defaultMethod;
-    }
+        $app->Dispatcher()->dispatch(Events::ROUTING, new RoutingEvent($request));
 
 
-    $classname = 'Application\\Controller\\' . $area . '\\' . $controller;
+        $paths = explode('/', $request->getPathInfo());
+
+        if (count($paths) < 2 && !$app->Routes()->get($request->getPathInfo())) {
+            (new Response())
+                ->setStatusCode(Response::HTTP_BAD_REQUEST)
+                ->setContent("Route error")->send();
+            die;
+        }
+
+        $area = 'Frontend';
+        $defaultController = ROUTE_FRONTEND_DEFAULT_CONTROLLER;
+        $defaultMethod = ROUTE_FRONTEND_DEFAULT_METHOD;
+
+        switch (strtolower($paths[1])) {
+            case strtolower(BACKEND_AREA_NAME):
+                $area = 'Backend';
+                $defaultController = ROUTE_BACKEND_DEFAULT_CONTROLLER;
+                $defaultMethod = ROUTE_BACKEND_DEFAULT_METHOD;
+                break;
+            case 'api':
+                $area = 'Api';
+                $defaultController = ROUTE_API_DEFAULT_CONTROLLER;
+                $defaultMethod = ROUTE_API_DEFAULT_METHOD;
+                break;
+        }
+
+        if (in_array(strtolower($paths[1]), ['frontend', strtolower(BACKEND_AREA_NAME), strtolower(API_AREA_NAME)])) {
+            $controller = !empty($paths[2]) ? ucfirst(strtolower($paths[2])) : $defaultController;
+            $method = isset($paths[3]) && !empty($paths[3]) ? $paths[3] : $defaultMethod;
+        } else {
+            $controller = !empty($paths[1]) ? ucfirst(strtolower($paths[1])) : $defaultController;
+            $method = isset($paths[2]) && !empty($paths[2]) ? $paths[2] : $defaultMethod;
+        }
+
+
+        $classname = 'Application\\Controller\\' . $area . '\\' . $controller;
 
 
 //    $compiled_routes = [];
-    $matched = false;
-    foreach ($app->Routes()->all() as $name => $route) {
-        if ($matched = preg_match($route->compile()->getRegex(), $request->getPathInfo())) break;
-    }
+        $matched = false;
+        foreach ($app->Routes()->all() as $name => $route) {
+            if ($matched = preg_match($route->compile()->getRegex(), $request->getPathInfo())) break;
+        }
 
 //    $app->map($request->getPathInfo(),
 //        [
@@ -89,74 +91,78 @@ function handleApp()
 //            $method
 //        ]);
 
-    if (!$matched) {
-        if (!class_exists($classname)) {
+        if (!$matched) {
+            if (!class_exists($classname)) {
 
-            $controllerNotFoundEvent = $app->Dispatcher()->dispatch(Events::CONTROLLER_NOT_FOUND, new ControllerNotFoundEvent($request));
-            if ($controllerNotFoundEvent->hasResponse()) {
-                $controllerNotFoundEvent->getResponse()->send();
-            } else {
-                (new Response())
-                    ->setStatusCode(Response::HTTP_NOT_FOUND)
-                    ->setContent("Class <strong> {$classname} </strong> not found for route (" . $request->getPathInfo() . ")!")
-                    ->send();
+                $controllerNotFoundEvent = $app->Dispatcher()->dispatch(Events::CONTROLLER_NOT_FOUND, new ControllerNotFoundEvent($request));
+                if ($controllerNotFoundEvent->hasResponse()) {
+                    $controllerNotFoundEvent->getResponse()->send();
+                } else {
+                    (new Response())
+                        ->setStatusCode(Response::HTTP_NOT_FOUND)
+                        ->setContent("Class <strong> {$classname} </strong> not found for route (" . $request->getPathInfo() . ")!")
+                        ->send();
+                }
+                die;
             }
-            die;
+            $app->map($request->getPathInfo(),
+                [
+                    $classname,
+                    $method
+                ]);
         }
-        $app->map($request->getPathInfo(),
-            [
-                $classname,
-                $method
-            ]);
+
+
+        $app->setCurrentArea($area);
+        $app->setCurrentContoller($classname);
+        $app->setCurrentMethod($method);
+
+        $response = $app->handle($request);
+        $response->send();
+
+
     }
 
+    /**
+     * @return ErkinApp
+     */
+    function ErkinApp()
+    {
+        return ErkinApp::getInstance();
+    }
 
-    $app->setCurrentArea($area);
-    $app->setCurrentContoller($classname);
-    $app->setCurrentMethod($method);
+    /**
+     * @param string $key
+     * @return bool|mixed
+     */
+    function getUserFrontend($key = '')
+    {
+        return ErkinApp()->UserFrontend($key);
+    }
 
-    $response = $app->handle($request);
-    $response->send();
+    /**
+     * @param string $key
+     * @return bool|mixed
+     */
+    function getUserBackend($key = '')
+    {
+        return ErkinApp()->UserBackend($key);
+    }
 
+    /**
+     * @param string $key
+     * @return bool|mixed
+     */
+    function getUserApi($key = '')
+    {
+        return ErkinApp()->UserApi($key);
+    }
 
-}
-
-/**
- * @return ErkinApp
- */
-function ErkinApp()
-{
-    return ErkinApp::getInstance();
-}
-
-/**
- * @param string $key
- * @return bool|mixed
- */
-function getUserFrontend($key = '')
-{
-    return ErkinApp()->UserFrontend($key);
-}
-
-/**
- * @param string $key
- * @return bool|mixed
- */
-function getUserBackend($key = '')
-{
-    return ErkinApp()->UserBackend($key);
-}
-
-/**
- * @param string $key
- * @return bool|mixed
- */
-function getUserApi($key = '')
-{
-    return ErkinApp()->UserApi($key);
-}
-
-if (!function_exists('getView')) {
+    /**
+     * @param $__filename
+     * @param array $__data
+     * @return bool|false|string
+     */
     function getView($__filename, $__data = [])
     {
         $__filename = ltrim($__filename, '/');
@@ -177,14 +183,17 @@ if (!function_exists('getView')) {
         include $viewfile;
         return ob_get_clean();
     }
-}
 
-if (!function_exists('loadLibrary')) {
+    /**
+     * @param $path
+     * @return bool
+     */
     function loadLibrary($path)
     {
         $filename = BASE_PATH . '/libraries/' . ltrim($path, '/');
         if (!file_exists($filename)) return false;
 
         include_once $filename;
+        return true;
     }
 }

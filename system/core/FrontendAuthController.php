@@ -6,6 +6,7 @@ namespace ErkinApp;
 
 use ErkinApp\Events\CheckLoggedInStatusEvent;
 use ErkinApp\Events\Events;
+use function ErkinApp\Helpers\ErkinApp;
 
 class FrontendAuthController extends Controller implements IAuthController
 {

@@ -1,16 +1,11 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: erkin
- * Date: 17.09.2018
- * Time: 17:42
- */
+
 
 namespace ErkinApp\Events;
 
+use Symfony\Component\EventDispatcher\Event;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\EventDispatcher\Event;
 
 class ResponseEvent extends Event
 {

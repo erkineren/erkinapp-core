@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: erkin
- * Date: 10.03.2019
- * Time: 02:28
- */
 
 namespace ErkinApp\Events;
 
@@ -39,14 +33,14 @@ class ActionNotFoundEvent extends Event
         return $this->request;
     }
 
-    public function setResponse(Response $response)
-    {
-        $this->response = $response;
-    }
-
     public function getResponse()
     {
         return $this->response;
+    }
+
+    public function setResponse(Response $response)
+    {
+        $this->response = $response;
     }
 
     public function hasResponse()
