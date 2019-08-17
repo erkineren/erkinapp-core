@@ -12,7 +12,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use function ErkinApp\Helpers\get_class_short_name;
-use function ErkinApp\Helpers\split_camel_case;
 
 /**
  * Class Controller
@@ -54,51 +53,7 @@ abstract class Controller
 
     public function __get($name)
     {
-
-        switch ($name) {
-            case 'sessions':
-                return ErkinApp()->Session();
-            case 'cookies':
-                return ErkinApp()->Request()->cookies;
-            case 'request':
-                return ErkinApp()->Request();
-            case 'dispatcher':
-                return ErkinApp()->Dispatcher();
-            case 'models':
-                return ErkinApp()->Models();
-            case 'area':
-                return ErkinApp()->getCurrentArea();
-            case 'db':
-                return ErkinApp()->DB('default');
-            case 'container':
-                return ErkinApp()->Container();
-        }
-
-
-        /*
-         * Dynamically access models
-         *
-         *
-         * $this->modelAccount   => return Application\Model\{area-controller-in}\Account
-         * $this->modelFrontendAccount   => return Application\Model\Frontend\Account
-         * $this->modelBackendAccount   => return Application\Model\Backend\Account
-         */
-        if (strpos($name, 'model') === 0) {
-
-            $parts = split_camel_case($name);
-            if (count($parts) == 2) {
-                $parts[2] = $parts[1]; // Slide forward model name
-                $parts[1] = ucfirst($this->area); // add own area name before model name
-            }
-            $modelname = implode('\\', array_slice($parts, 1, 1)) . '\\' . implode('', array_slice($parts, 2));
-
-
-            $modelclass = 'Application\\Model\\' . $modelname;
-
-            return ErkinApp()->Models($modelclass);
-        }
-
-        return ErkinApp()->Container()->offsetGet($name);
+        return ErkinApp()->Get($name);
     }
 
 

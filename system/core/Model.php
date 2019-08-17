@@ -25,6 +25,12 @@ abstract class Model
         $this->db = ErkinApp()->DB('default');
     }
 
+    public function __get($name)
+    {
+        return ErkinApp()->Get($name);
+    }
+
+
     /**
      * @return mixed
      */

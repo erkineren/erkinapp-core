@@ -29,6 +29,7 @@ use Symfony\Component\Routing\RouteCollection;
 use function ErkinApp\Helpers\get_class_short_name;
 use function ErkinApp\Helpers\loadDefaultLanguage;
 use function ErkinApp\Helpers\loadLanguage;
+use function ErkinApp\Helpers\split_camel_case;
 
 class ErkinApp implements HttpKernelInterface
 {
@@ -77,6 +78,9 @@ class ErkinApp implements HttpKernelInterface
     protected $currentMethodArgs;
     protected $languages;
 
+    /**
+     * ErkinApp constructor.
+     */
     private function __construct()
     {
         $this->container = new Container();
@@ -137,6 +141,236 @@ class ErkinApp implements HttpKernelInterface
     {
         if (self::$instance === null) self::$instance = new self();
         return self::$instance;
+    }
+
+    /**
+     * @param $name
+     * @return bool|Model|Model[]|mixed|Container|EventDispatcher|\Symfony\Component\HttpFoundation\ParameterBag|Request|\Symfony\Component\HttpFoundation\Session\SessionInterface|null
+     */
+    public function Get($name)
+    {
+        switch ($name) {
+            case 'sessions':
+                return $this->Session();
+            case 'cookies':
+                return $this->Request()->cookies;
+            case 'request':
+                return $this->Request();
+            case 'dispatcher':
+                return $this->Dispatcher();
+            case 'models':
+                return $this->Models();
+            case 'area':
+                return $this->getCurrentArea();
+            case 'db':
+                return $this->DB('default');
+            case 'container':
+                return $this->Container();
+        }
+
+
+        /*
+         * Dynamically access models
+         *
+         *
+         * $this->modelAccount   => return Application\Model\{area-controller-in}\Account
+         * $this->modelFrontendAccount   => return Application\Model\Frontend\Account
+         * $this->modelBackendAccount   => return Application\Model\Backend\Account
+         */
+        if (strpos($name, 'model') === 0) {
+
+            $parts = split_camel_case($name);
+            if (count($parts) == 2) {
+                $parts[2] = $parts[1]; // Slide forward model name
+                $parts[1] = ucfirst($this->area); // add own area name before model name
+            }
+            $modelname = implode('\\', array_slice($parts, 1, 1)) . '\\' . implode('', array_slice($parts, 2));
+
+
+            $modelclass = 'Application\\Model\\' . $modelname;
+
+            return $this->Models($modelclass);
+        }
+
+        return $this->Container()->offsetGet($name);
+    }
+
+    /**
+     * @return \Symfony\Component\HttpFoundation\Session\SessionInterface|null
+     */
+    public function Session()
+    {
+        return $this->request->getSession();
+    }
+
+    /**
+     * @return Request
+     */
+    public function Request()
+    {
+        if ($this->request == null) {
+            $this->request = Request::createFromGlobals();
+        }
+        return $this->request;
+    }
+
+    /**
+     * @return EventDispatcher
+     */
+    public function Dispatcher()
+    {
+        return $this->dispatcher;
+    }
+
+    /**
+     * @param string $class
+     * @return bool|Model|Model[]
+     */
+    public function Models($class = '')
+    {
+        if (!$class) return $this->models;
+        if (!class_exists($class)) return false;
+
+        if (!isset($this->models[$class])) $this->models[$class] = new $class();
+
+        return $this->models[$class];
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getCurrentArea()
+    {
+        return $this->currentArea;
+    }
+
+    /**
+     * @param mixed $currentArea
+     */
+    public function setCurrentArea($currentArea)
+    {
+        $this->currentArea = $currentArea;
+    }
+
+    /**
+     * @param Query $db
+     * @return mixed
+     */
+    public function &DB($dbkey)
+    {
+        if (!array_key_exists($dbkey, DB_CONFIG)) return false;
+
+        if (!isset($this->databases[$dbkey])) $this->databases[$dbkey] = $this->_loadDb($dbkey);
+
+        return $this->databases[$dbkey];
+    }
+
+    /**
+     * @return Container
+     */
+    public function Container()
+    {
+        return $this->container;
+    }
+
+    /**
+     * @return \Symfony\Component\HttpFoundation\ParameterBag
+     */
+    public function RequestGet()
+    {
+        return $this->Request()->query;
+    }
+
+    /**
+     * @return \Symfony\Component\HttpFoundation\ParameterBag
+     */
+    public function RequestPost()
+    {
+        return $this->Request()->request;
+    }
+
+    /**
+     * @param string $key
+     * @return bool|mixed
+     */
+    public function UserFrontend($key = '')
+    {
+        $user = $this->request->getSession()->get(SESSION_FRONTEND_AUTH);
+
+        if (is_array($user) && $key) {
+            if (isset($user[$key])) return $user[$key];
+            return false;
+        } elseif (is_object($user) && $key) {
+            if (isset($user->$key)) return $user->$key;
+            return false;
+        }
+        if (!$user) return false;
+
+        return $user;
+    }
+
+    /**
+     * @param string $key
+     * @return bool|mixed
+     */
+    public function UserBackend($key = '')
+    {
+        $user = $this->request->getSession()->get(SESSION_BACKEND_AUTH);
+        if (is_array($user) && $key) {
+            if (isset($user[$key])) return $user[$key];
+            return false;
+        } elseif (is_object($user) && $key) {
+            if (isset($user->$key)) return $user->$key;
+            return false;
+        }
+        if (!$user) return false;
+        return $user;
+    }
+
+    /**
+     * @param string $key
+     * @return bool|mixed
+     */
+    public function UserApi($key = '')
+    {
+        $user = $this->request->getSession()->get(SESSION_API_AUTH);
+        if (is_array($user) && $key) {
+            if (isset($user[$key])) return $user[$key];
+            return false;
+        } elseif (is_object($user) && $key) {
+            if (isset($user->$key)) return $user->$key;
+            return false;
+        }
+        if (!$user) return false;
+        return $user;
+    }
+
+    /**
+     * @param null $key
+     * @param null $lang
+     * @return bool
+     */
+    public function Language($key = null, $lang = null)
+    {
+        if ($lang === null)
+            if (defined('DEFAULT_LANGUAGE')) $lang = DEFAULT_LANGUAGE;
+            else return false;
+
+        if (!isset($this->languages[$lang]))
+            $this->languages[$lang] = loadLanguage($lang);
+
+        if ($key)
+            return isset($this->languages[$lang][$key]) ? $this->languages[$lang][$key] : false;
+        else
+            return $this->languages[$lang];
+    }
+
+    /**
+     * @return RouteCollection
+     */
+    public function Routes(): RouteCollection
+    {
+        return $this->routes;
     }
 
     /**
@@ -285,6 +519,9 @@ class ErkinApp implements HttpKernelInterface
         return $response;
     }
 
+    /**
+     * @return string
+     */
     public function getCurrentContollerShortName()
     {
         try {
@@ -294,6 +531,16 @@ class ErkinApp implements HttpKernelInterface
         }
     }
 
+    /**
+     * @param $path
+     * @param $controller
+     * @param array $requirements
+     * @param array $options
+     * @param string|null $host
+     * @param array $schemes
+     * @param array $methods
+     * @param string|null $condition
+     */
     public function map($path, $controller, array $requirements = [], array $options = [], ?string $host = '', $schemes = [], $methods = [], ?string $condition = '')
     {
         $this->routes->add(
@@ -306,143 +553,22 @@ class ErkinApp implements HttpKernelInterface
         );
     }
 
+    /**
+     * @param $event
+     * @param $callback
+     */
     public function on($event, $callback)
     {
         $this->dispatcher->addListener($event, $callback);
     }
 
+    /**
+     * @param $event
+     * @return mixed|object|\Symfony\Component\EventDispatcher\Event|null
+     */
     public function fire($event)
     {
         return $this->dispatcher->dispatch($event);
-    }
-
-    public function RequestGet()
-    {
-        return $this->Request()->query;
-    }
-
-    /**
-     * @return Request
-     */
-    public function Request()
-    {
-        if ($this->request == null) {
-            $this->request = Request::createFromGlobals();
-        }
-        return $this->request;
-    }
-
-    public function RequestPost()
-    {
-        return $this->Request()->request;
-    }
-
-    public function Session()
-    {
-        return $this->request->getSession();
-    }
-
-    public function Dispatcher()
-    {
-        return $this->dispatcher;
-    }
-
-    /**
-     * @param Query $db
-     * @return mixed
-     */
-    public function &DB($dbkey)
-    {
-        if (!array_key_exists($dbkey, DB_CONFIG)) return false;
-
-        if (!isset($this->databases[$dbkey])) $this->databases[$dbkey] = $this->_loadDb($dbkey);
-
-        return $this->databases[$dbkey];
-    }
-
-    public function Models($class = '')
-    {
-        if (!$class) return $this->models;
-        if (!class_exists($class)) return false;
-
-        if (!isset($this->models[$class])) $this->models[$class] = new $class();
-
-        return $this->models[$class];
-    }
-
-    public function UserFrontend($key = '')
-    {
-        $user = $this->request->getSession()->get(SESSION_FRONTEND_AUTH);
-
-        if (is_array($user) && $key) {
-            if (isset($user[$key])) return $user[$key];
-            return false;
-        } elseif (is_object($user) && $key) {
-            if (isset($user->$key)) return $user->$key;
-            return false;
-        }
-        if (!$user) return false;
-
-        return $user;
-    }
-
-    public function UserBackend($key = '')
-    {
-        $user = $this->request->getSession()->get(SESSION_BACKEND_AUTH);
-        if (is_array($user) && $key) {
-            if (isset($user[$key])) return $user[$key];
-            return false;
-        } elseif (is_object($user) && $key) {
-            if (isset($user->$key)) return $user->$key;
-            return false;
-        }
-        if (!$user) return false;
-        return $user;
-    }
-
-    public function UserApi($key = '')
-    {
-        $user = $this->request->getSession()->get(SESSION_API_AUTH);
-        if (is_array($user) && $key) {
-            if (isset($user[$key])) return $user[$key];
-            return false;
-        } elseif (is_object($user) && $key) {
-            if (isset($user->$key)) return $user->$key;
-            return false;
-        }
-        if (!$user) return false;
-        return $user;
-    }
-
-    public function Language($key = null, $lang = null)
-    {
-        if ($lang === null)
-            if (defined('DEFAULT_LANGUAGE')) $lang = DEFAULT_LANGUAGE;
-            else return false;
-
-        if (!isset($this->languages[$lang]))
-            $this->languages[$lang] = loadLanguage($lang);
-
-        if ($key)
-            return isset($this->languages[$lang][$key]) ? $this->languages[$lang][$key] : false;
-        else
-            return $this->languages[$lang];
-    }
-
-    /**
-     * @return RouteCollection
-     */
-    public function Routes(): RouteCollection
-    {
-        return $this->routes;
-    }
-
-    /**
-     * @return Container
-     */
-    public function Container()
-    {
-        return $this->container;
     }
 
     /**
@@ -461,28 +587,15 @@ class ErkinApp implements HttpKernelInterface
         $this->currentMethodArgs = $currentMethodArgs;
     }
 
+    /**
+     * @return string
+     */
     public function getCurrentActionMethodPath()
     {
         if ($this->getCurrentArea() == 'Frontend')
             return strtolower(get_class_short_name($this->currentContoller)) . '/' . $this->getCurrentMethod();
         else
             return strtolower($this->getCurrentArea()) . '/' . strtolower(get_class_short_name($this->currentContoller)) . '/' . $this->getCurrentMethod();
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getCurrentArea()
-    {
-        return $this->currentArea;
-    }
-
-    /**
-     * @param mixed $currentArea
-     */
-    public function setCurrentArea($currentArea)
-    {
-        $this->currentArea = $currentArea;
     }
 
     /**
@@ -501,6 +614,9 @@ class ErkinApp implements HttpKernelInterface
         $this->currentMethod = $currentMethod;
     }
 
+    /**
+     * @return string
+     */
     function getCurrentContollerPath()
     {
         if ($this->getCurrentArea() == 'Frontend')
@@ -524,5 +640,6 @@ class ErkinApp implements HttpKernelInterface
     {
         $this->currentContoller = $currentContoller;
     }
+
 
 }
