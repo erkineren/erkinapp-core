@@ -22,6 +22,8 @@ namespace ErkinApp\Helpers {
         }, $columns);
 
         $search = $controller->_post('search');
+        $search['value'] = addslashes($search['value']);
+
         $where = '';
         if ($search && $search['value']) {
             foreach ($columns as $column) {
