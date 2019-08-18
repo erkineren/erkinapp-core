@@ -184,7 +184,7 @@ class ErkinApp implements HttpKernelInterface
             $parts = split_camel_case($name);
             if (count($parts) == 2) {
                 $parts[2] = $parts[1]; // Slide forward model name
-                $parts[1] = ucfirst($this->area); // add own area name before model name
+                $parts[1] = ucfirst($this->currentArea); // add own area name before model name
             }
             $modelname = implode('\\', array_slice($parts, 1, 1)) . '\\' . implode('', array_slice($parts, 2));
 
