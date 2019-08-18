@@ -28,7 +28,6 @@ use function ErkinApp\Helpers\get_class_short_name;
  */
 abstract class Controller
 {
-
     /**
      * @var Model
      */

@@ -16,6 +16,7 @@ namespace {
 
 namespace ErkinApp\Helpers {
 
+    use ErkinApp\Constants;
     use ErkinApp\Events\ControllerNotFoundEvent;
     use ErkinApp\Events\Events;
     use ErkinApp\Events\RoutingEvent;
@@ -41,7 +42,7 @@ namespace ErkinApp\Helpers {
         }
 
         $whoops = new Run;
-        $whoops->pushHandler(new PlainTextHandler());
+        $whoops->prependHandler(new PlainTextHandler());
         $whoops->register();
 
 
@@ -63,22 +64,23 @@ namespace ErkinApp\Helpers {
             die;
         }
 
-        $area = 'Frontend';
+        $area = Constants::AREA_FRONTEND;
         $defaultController = ROUTE_FRONTEND_DEFAULT_CONTROLLER;
         $defaultMethod = ROUTE_FRONTEND_DEFAULT_METHOD;
 
         switch (strtolower($paths[1])) {
             case strtolower(BACKEND_AREA_NAME):
-                $area = 'Backend';
+                $area = Constants::AREA_BACKEND;
                 $defaultController = ROUTE_BACKEND_DEFAULT_CONTROLLER;
                 $defaultMethod = ROUTE_BACKEND_DEFAULT_METHOD;
                 break;
             case 'api':
-                $area = 'Api';
+                $area = Constants::AREA_API;
                 $defaultController = ROUTE_API_DEFAULT_CONTROLLER;
                 $defaultMethod = ROUTE_API_DEFAULT_METHOD;
                 break;
         }
+        $app->setCurrentArea($area);
 
         if (in_array(strtolower($paths[1]), ['frontend', strtolower(BACKEND_AREA_NAME), strtolower(API_AREA_NAME)])) {
             $controller = !empty($paths[2]) ? ucfirst(strtolower($paths[2])) : $defaultController;
@@ -126,7 +128,6 @@ namespace ErkinApp\Helpers {
         }
 
 
-        $app->setCurrentArea($area);
         $app->setCurrentContoller($classname);
         $app->setCurrentMethod($method);
 
