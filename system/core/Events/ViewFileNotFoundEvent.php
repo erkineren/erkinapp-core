@@ -54,4 +54,20 @@ class ViewFileNotFoundEvent extends Event
         return $this->response !== null;
     }
 
+    /**
+     * @return string
+     */
+    public function getFilename(): string
+    {
+        return $this->filename;
+    }
+
+    /**
+     * @param string $filename
+     */
+    public function setFilename(string $filename): void
+    {
+        $this->filename = $filename;
+    }
+
 }
