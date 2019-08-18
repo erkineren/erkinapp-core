@@ -45,8 +45,11 @@ namespace ErkinApp\Helpers {
 
         $whoops = new Run;
         $whoops->prependHandler(new CallbackHandler(function ($exception, $inspector, $run) {
-            $errorEvent = ErkinApp()->Dispatcher()->dispatch(Events::ERROR, new ErrorEvent(ErkinApp()->Request(), $exception));
-            if ($errorEvent->hasResponse()) return $errorEvent->getResponse();
+            /** @var ErrorEvent $errorEvent */
+            $errorEvent = ErkinApp()->Dispatcher()->dispatch(new ErrorEvent(ErkinApp()->Request(), $exception), Events::ERROR);
+            if ($errorEvent->hasResponse()) {
+                $errorEvent->getResponse()->send();
+            }
             return Handler::DONE;
         }));
         $whoops->register();
@@ -58,7 +61,7 @@ namespace ErkinApp\Helpers {
         require_once APP_PATH . '/events.php';
 
 
-        $app->Dispatcher()->dispatch(Events::ROUTING, new RoutingEvent($request));
+        $app->Dispatcher()->dispatch(new RoutingEvent($request), Events::ROUTING);
 
 
         $paths = explode('/', $request->getPathInfo());
@@ -115,7 +118,7 @@ namespace ErkinApp\Helpers {
         if (!$matched) {
             if (!class_exists($classname)) {
 
-                $controllerNotFoundEvent = $app->Dispatcher()->dispatch(Events::CONTROLLER_NOT_FOUND, new ControllerNotFoundEvent($request));
+                $controllerNotFoundEvent = $app->Dispatcher()->dispatch(new ControllerNotFoundEvent($request), Events::CONTROLLER_NOT_FOUND);
                 if ($controllerNotFoundEvent->hasResponse()) {
                     $controllerNotFoundEvent->getResponse()->send();
                 } else {

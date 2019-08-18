@@ -397,7 +397,7 @@ class ErkinApp implements HttpKernelInterface
             $attributes = $matcher->match($this->request->getPathInfo());
 
             /** @var RequestEvent $requestEvent */
-            $requestEvent = $this->dispatcher->dispatch(Events::REQUEST, new RequestEvent($this->request));
+            $requestEvent = $this->dispatcher->dispatch(new RequestEvent($this->request), Events::REQUEST);
 
             $controller = $attributes['controller'];
 
@@ -423,7 +423,7 @@ class ErkinApp implements HttpKernelInterface
                 $method = isset($controller[1]) ? $controller[1] : 'index';
 
                 if (!method_exists($ctrl, $method)) {
-                    $actionNotFoundEvent = $this->dispatcher->dispatch(Events::ACTION_NOT_FOUND, new ActionNotFoundEvent($request));
+                    $actionNotFoundEvent = $this->dispatcher->dispatch(new ActionNotFoundEvent($request), Events::ACTION_NOT_FOUND);
                     if ($actionNotFoundEvent->hasResponse()) {
                         return $actionNotFoundEvent->getResponse();
                     } else {
@@ -507,21 +507,21 @@ class ErkinApp implements HttpKernelInterface
         } catch (ResourceNotFoundException $e1) {
 
 //            $response = new Response('An error occurred ResourceNotFoundException: ' . $e1->getMessage(), Response::HTTP_NOT_FOUND);
-            $errorEvent = $this->dispatcher->dispatch(Events::ERROR, new ErrorEvent($request, $e1));
+            $errorEvent = $this->dispatcher->dispatch(new ErrorEvent($request, $e1), Events::ERROR);
             if ($errorEvent->hasResponse()) return $errorEvent->getResponse();
             else throw $e1;
 
         } catch (\ArgumentCountError $e2) {
 //            throw $e2;
 //            $response = new Response('An error occurred ArgumentCountError: ' . $e2->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
-            $errorEvent = $this->dispatcher->dispatch(Events::ERROR, new ErrorEvent($request, $e2));
+            $errorEvent = $this->dispatcher->dispatch(new ErrorEvent($request, $e2), Events::ERROR);
             if ($errorEvent->hasResponse()) return $errorEvent->getResponse();
             else throw $e2;
 
         } catch (Exception $e3) {
 //            throw $e2;
 //            $response = new Response('An error occurred ' . get_class_short_name($e3) . ': ' . $e3->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
-            $errorEvent = $this->dispatcher->dispatch(Events::ERROR, new ErrorEvent($request, $e3));
+            $errorEvent = $this->dispatcher->dispatch(new ErrorEvent($request, $e3), Events::ERROR);
             if ($errorEvent->hasResponse()) return $errorEvent->getResponse();
             else throw $e3;
 

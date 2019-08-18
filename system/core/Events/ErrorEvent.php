@@ -34,7 +34,7 @@ class ErrorEvent extends Event
         $this->request = $request;
         $this->throwable = $throwable;
         if ($throwable != null) {
-            $this->response = new Response($throwable->getTraceAsString(), Response::HTTP_INTERNAL_SERVER_ERROR);
+            $this->response = new Response($throwable->getMessage() . PHP_EOL . $throwable->getTraceAsString(), Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 

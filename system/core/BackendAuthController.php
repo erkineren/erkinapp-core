@@ -24,7 +24,7 @@ class BackendAuthController extends Controller implements IAuthController
         // if session is not set, check the remember me cookie
         if (!$isAuthenticated) {
             /** @var CheckLoggedInStatusEvent $event */
-            $event = ErkinApp()->Dispatcher()->dispatch(Events::CHECK_LOGGED_IN_STATUS, new CheckLoggedInStatusEvent($this));
+            $event = ErkinApp()->Dispatcher()->dispatch(new CheckLoggedInStatusEvent($this), Events::CHECK_LOGGED_IN_STATUS);
             $isAuthenticated = $event->isAuthenticated();
         }
 

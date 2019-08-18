@@ -27,8 +27,7 @@ class ApiAuthController extends Controller implements IAuthController
         if (count($credentials) != 2) return false;
 
         /** @var ApiBasicAuthEvent $event */
-        $event = $this->dispatcher->dispatch(Events::API_BASIC_AUTHENTICATION,
-            new ApiBasicAuthEvent($credentials[0], $credentials[1]));
+        $event = $this->dispatcher->dispatch(new ApiBasicAuthEvent($credentials[0], $credentials[1]), Events::API_BASIC_AUTHENTICATION);
 
 
         return $event->isAuthenticated();
