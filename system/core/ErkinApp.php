@@ -479,8 +479,8 @@ class ErkinApp implements HttpKernelInterface
 
                 $controllerActionEventName = implode('_', explode("\\", get_class($ctrl))) . '::' . $method;
 
-                $this->dispatcher->dispatch('Application_Controller_' . $this->currentArea . '::before', new ControllerActionEvent($ctrl, $method, $method_parameters, $request));
-                $this->dispatcher->dispatch($controllerActionEventName . '::before', new ControllerActionEvent($ctrl, $method, $method_parameters, $request));
+                $this->dispatcher->dispatch(new ControllerActionEvent($ctrl, $method, $method_parameters, $request), 'Application_Controller_' . $this->currentArea . '::before');
+                $this->dispatcher->dispatch(new ControllerActionEvent($ctrl, $method, $method_parameters, $request), $controllerActionEventName . '::before');
 
                 $response = call_user_func_array(
                     [
@@ -498,8 +498,8 @@ class ErkinApp implements HttpKernelInterface
                 }
 
 
-                $this->dispatcher->dispatch('Application_Controller_' . $this->currentArea . '::after', new ControllerActionEvent($ctrl, $method, $method_parameters, $request, $response));
-                $this->dispatcher->dispatch($controllerActionEventName . '::after', new ControllerActionEvent($ctrl, $method, $method_parameters, $request, $response));
+                $this->dispatcher->dispatch(new ControllerActionEvent($ctrl, $method, $method_parameters, $request, $response), 'Application_Controller_' . $this->currentArea . '::after');
+                $this->dispatcher->dispatch(new ControllerActionEvent($ctrl, $method, $method_parameters, $request, $response), $controllerActionEventName . '::after');
 
 
             }
@@ -528,7 +528,7 @@ class ErkinApp implements HttpKernelInterface
         }
 
 
-        $this->dispatcher->dispatch('onResponse', new ResponseEvent($response, $this->request));
+        $this->dispatcher->dispatch(new ResponseEvent($response, $this->request), Events::RESPONSE);
 
         return $response;
     }
