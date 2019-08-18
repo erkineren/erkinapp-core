@@ -20,20 +20,21 @@ class ErrorEvent extends Event
     protected $response;
 
     /**
-     * @var \Exception
+     * @var \Throwable
      */
-    protected $exception;
+    protected $throwable;
 
     /**
      * RequestEvent constructor.
      * @param Request $request
      */
-    public function __construct(Request $request, \Exception $exception = null)
+    public function __construct(Request $request, \Throwable $throwable = null)
     {
+
         $this->request = $request;
-        $this->exception = $exception;
-        if ($exception != null) {
-            $this->response = new Response($exception->getTraceAsString(), Response::HTTP_INTERNAL_SERVER_ERROR);
+        $this->throwable = $throwable;
+        if ($throwable != null) {
+            $this->response = new Response($throwable->getTraceAsString(), Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -58,19 +59,19 @@ class ErrorEvent extends Event
     }
 
     /**
-     * @return \Exception
+     * @return \Throwable
      */
-    public function getException(): \Exception
+    public function getThrowable(): \Throwable
     {
-        return $this->exception;
+        return $this->throwable;
     }
 
     /**
-     * @param \Exception $exception
+     * @param \Throwable $throwable
      */
-    public function setException(\Exception $exception): void
+    public function setThrowable(\Throwable $throwable): void
     {
-        $this->exception = $exception;
+        $this->throwable = $throwable;
     }
 
 
