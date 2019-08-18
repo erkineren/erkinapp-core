@@ -4,6 +4,8 @@ namespace ErkinApp;
 
 
 use Envms\FluentPDO\Query;
+use ErkinApp\Events\Events;
+use ErkinApp\Events\ViewFileNotFoundEvent;
 use Pimple\Container;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpFoundation\ParameterBag;
@@ -79,9 +81,9 @@ abstract class Controller
         return ErkinApp()->DB($dbkey);
     }
 
-    public function dispatch($eventName)
+    public function dispatch($event, $eventName = null)
     {
-        return $this->dispatcher->dispatch($eventName);
+        return $this->dispatcher->dispatch($event, $eventName);
     }
 
     public function renderViewPlain($__view = '', $__data = [])
@@ -114,7 +116,9 @@ abstract class Controller
         $__filename = sprintf(APP_PATH . '/View/' . $this->area . '/%s.php', $__view);
 
         if (!file_exists($__filename)) {
-            return new Response("View file not found : <strong>{$__filename}</strong>");
+            /** @var ViewFileNotFoundEvent $viewFileNotFoundEvent */
+            $viewFileNotFoundEvent = $this->dispatch(new ViewFileNotFoundEvent($this->request, $__filename), Events::VIEW_FILE_NOT_FOUND);
+            if ($viewFileNotFoundEvent->hasResponse()) return $viewFileNotFoundEvent->getResponse();
             die;
         }
 
@@ -144,7 +148,9 @@ abstract class Controller
             $__filename = sprintf(APP_PATH . '/View/' . $this->area . '/%s.php', $__view);
 
             if (!file_exists($__filename)) {
-                return new Response("View file not found : <strong>{$__filename}</strong>");
+                /** @var ViewFileNotFoundEvent $viewFileNotFoundEvent */
+                $viewFileNotFoundEvent = $this->dispatch(new ViewFileNotFoundEvent($this->request, $__filename), Events::VIEW_FILE_NOT_FOUND);
+                if ($viewFileNotFoundEvent->hasResponse()) return $viewFileNotFoundEvent->getResponse();
                 die;
             }
 

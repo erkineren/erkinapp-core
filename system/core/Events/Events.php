@@ -13,5 +13,6 @@ class Events
     const ROUTING = 'onRouting';
     const CONTROLLER_NOT_FOUND = 'onControllerNotFound';
     const ACTION_NOT_FOUND = 'onActionNotFound';
+    const VIEW_FILE_NOT_FOUND = 'onViewFileNotFound';
     const ERROR = 'onError';
 }
