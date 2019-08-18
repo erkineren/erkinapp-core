@@ -4,8 +4,8 @@
 namespace ErkinApp\Events;
 
 
-use Symfony\Component\EventDispatcher\Event;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Contracts\EventDispatcher\Event;
 
 
 class ApiBasicAuthEvent extends Event

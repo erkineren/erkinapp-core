@@ -1,13 +1,13 @@
 <?php
 
-
 namespace ErkinApp\Events;
+
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Contracts\EventDispatcher\Event;
 
-class RequestEvent extends Event
+class ErrorEvent extends Event
 {
     /**
      * @var Request
@@ -20,22 +20,26 @@ class RequestEvent extends Event
     protected $response;
 
     /**
+     * @var \Exception
+     */
+    protected $exception;
+
+    /**
      * RequestEvent constructor.
      * @param Request $request
      */
-    public function __construct(Request $request)
+    public function __construct(Request $request, \Exception $exception = null)
     {
         $this->request = $request;
+        $this->exception = $exception;
+        if ($exception != null) {
+            $this->response = new Response($exception->getTraceAsString(), Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
 
     public function getRequest()
     {
         return $this->request;
-    }
-
-    public function setRequest(Request $request)
-    {
-        $this->request = $request;
     }
 
     public function getResponse()
@@ -52,5 +56,22 @@ class RequestEvent extends Event
     {
         return $this->response !== null;
     }
+
+    /**
+     * @return \Exception
+     */
+    public function getException(): \Exception
+    {
+        return $this->exception;
+    }
+
+    /**
+     * @param \Exception $exception
+     */
+    public function setException(\Exception $exception): void
+    {
+        $this->exception = $exception;
+    }
+
 
 }

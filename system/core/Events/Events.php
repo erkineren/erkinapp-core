@@ -13,4 +13,5 @@ class Events
     const ROUTING = 'onRouting';
     const CONTROLLER_NOT_FOUND = 'onControllerNotFound';
     const ACTION_NOT_FOUND = 'onActionNotFound';
+    const ERROR = 'onError';
 }

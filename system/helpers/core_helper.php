@@ -18,11 +18,13 @@ namespace ErkinApp\Helpers {
 
     use ErkinApp\Constants;
     use ErkinApp\Events\ControllerNotFoundEvent;
+    use ErkinApp\Events\ErrorEvent;
     use ErkinApp\Events\Events;
     use ErkinApp\Events\RoutingEvent;
     use ErkinApp\Exceptions\ErkinAppException;
     use Symfony\Component\HttpFoundation\Response;
-    use Whoops\Handler\PlainTextHandler;
+    use Whoops\Handler\CallbackHandler;
+    use Whoops\Handler\Handler;
     use Whoops\Run;
 
     /**
@@ -42,7 +44,11 @@ namespace ErkinApp\Helpers {
         }
 
         $whoops = new Run;
-        $whoops->prependHandler(new PlainTextHandler());
+        $whoops->prependHandler(new CallbackHandler(function ($exception, $inspector, $run) {
+            $errorEvent = ErkinApp()->Dispatcher()->dispatch(Events::ERROR, new ErrorEvent(ErkinApp()->Request(), $exception));
+            if ($errorEvent->hasResponse()) return $errorEvent->getResponse();
+            return Handler::DONE;
+        }));
         $whoops->register();
 
 

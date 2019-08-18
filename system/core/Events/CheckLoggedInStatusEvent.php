@@ -5,7 +5,7 @@ namespace ErkinApp\Events;
 
 
 use ErkinApp\IAuthController;
-use Symfony\Component\EventDispatcher\Event;
+use Symfony\Contracts\EventDispatcher\Event;
 
 
 class CheckLoggedInStatusEvent extends Event

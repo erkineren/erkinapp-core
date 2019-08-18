@@ -5,9 +5,9 @@ namespace ErkinApp\Events;
 
 
 use ErkinApp\Controller;
-use Symfony\Component\EventDispatcher\Event;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Contracts\EventDispatcher\Event;
 
 class ControllerActionEvent extends Event
 {

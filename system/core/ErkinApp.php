@@ -8,9 +8,11 @@ use DateTime;
 use Envms\FluentPDO\Query;
 use ErkinApp\Events\ActionNotFoundEvent;
 use ErkinApp\Events\ControllerActionEvent;
+use ErkinApp\Events\ErrorEvent;
 use ErkinApp\Events\Events;
 use ErkinApp\Events\RequestEvent;
 use ErkinApp\Events\ResponseEvent;
+use ErkinApp\Exceptions\ErkinAppException;
 use Exception;
 use PDO;
 use Pimple\Container;
@@ -378,6 +380,7 @@ class ErkinApp implements HttpKernelInterface
      * @param int $type
      * @param bool $catch
      * @return mixed|JsonResponse|Response
+     * @throws Exception
      */
     public function handle(Request $request, $type = HttpKernelInterface::MASTER_REQUEST, $catch = true)
     {
@@ -424,10 +427,11 @@ class ErkinApp implements HttpKernelInterface
                     if ($actionNotFoundEvent->hasResponse()) {
                         return $actionNotFoundEvent->getResponse();
                     } else {
-                        (new Response())
-                            ->setStatusCode(Response::HTTP_NOT_FOUND)
-                            ->setContent("Action not exist : {$method}")
-                            ->send();
+//                        (new Response())
+//                            ->setStatusCode(Response::HTTP_NOT_FOUND)
+//                            ->setContent("Action not exist : {$method}")
+//                            ->send();
+                        throw new ErkinAppException("Action not exist : {$method}");
                     }
                 }
 
@@ -452,7 +456,8 @@ class ErkinApp implements HttpKernelInterface
                     $params = $r->getParameters();
                     foreach ($params as $key => $param) {
                         if (!isset($method_parameters[$key]) && !$param->isOptional()) {
-                            return new Response($param->getName() . " is required");
+//                            return new Response($param->getName() . " is required parameter");
+                            throw new ErkinAppException($param->getName() . " is required parameter");
                         }
                     }
 
@@ -501,15 +506,24 @@ class ErkinApp implements HttpKernelInterface
 
         } catch (ResourceNotFoundException $e1) {
 
-            $response = new Response('An error occurred ResourceNotFoundException: ' . $e1->getMessage(), Response::HTTP_NOT_FOUND);
+//            $response = new Response('An error occurred ResourceNotFoundException: ' . $e1->getMessage(), Response::HTTP_NOT_FOUND);
+            $errorEvent = $this->dispatcher->dispatch(Events::ERROR, new ErrorEvent($request, $e1));
+            if ($errorEvent->hasResponse()) return $errorEvent->getResponse();
+            else throw $e1;
 
         } catch (\ArgumentCountError $e2) {
 //            throw $e2;
-            $response = new Response('An error occurred ArgumentCountError: ' . $e2->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
+//            $response = new Response('An error occurred ArgumentCountError: ' . $e2->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
+            $errorEvent = $this->dispatcher->dispatch(Events::ERROR, new ErrorEvent($request, $e2));
+            if ($errorEvent->hasResponse()) return $errorEvent->getResponse();
+            else throw $e2;
 
-        } catch (Exception $e2) {
+        } catch (Exception $e3) {
 //            throw $e2;
-            $response = new Response('An error occurred ' . get_class_short_name($e2) . ': ' . $e2->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
+//            $response = new Response('An error occurred ' . get_class_short_name($e3) . ': ' . $e3->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
+            $errorEvent = $this->dispatcher->dispatch(Events::ERROR, new ErrorEvent($request, $e3));
+            if ($errorEvent->hasResponse()) return $errorEvent->getResponse();
+            else throw $e3;
 
         }
 
