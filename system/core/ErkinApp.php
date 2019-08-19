@@ -180,17 +180,12 @@ class ErkinApp implements HttpKernelInterface
          * $this->modelBackendAccount   => return Application\Model\Backend\Account
          */
         if (strpos($name, 'model') === 0) {
-
             $parts = split_camel_case($name);
-            if (count($parts) == 2) {
-                $parts[2] = $parts[1]; // Slide forward model name
-                $parts[1] = ucfirst($this->currentArea); // add own area name before model name
+            if (!in_array($parts[1], [Constants::AREA_FRONTEND, Constants::AREA_BACKEND, Constants::AREA_API])) {
+                array_splice($parts, 1, 0, ucfirst($this->currentArea));
             }
             $modelname = implode('\\', array_slice($parts, 1, 1)) . '\\' . implode('', array_slice($parts, 2));
-
-
             $modelclass = 'Application\\Model\\' . $modelname;
-
             return $this->Models($modelclass);
         }
 
