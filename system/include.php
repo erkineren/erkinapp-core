@@ -1,6 +1,6 @@
 <?php
 
-include_once __DIR__ . 'config/constants.php';
+include_once __DIR__ . '/config/constants.php';
 
 foreach (glob(__DIR__ . '/helpers/*_helper.php') as $file) {
     include_once $file;
