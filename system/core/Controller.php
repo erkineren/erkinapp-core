@@ -6,6 +6,7 @@ namespace ErkinApp;
 use Envms\FluentPDO\Query;
 use ErkinApp\Events\Events;
 use ErkinApp\Events\ViewFileNotFoundEvent;
+use Monolog\Logger;
 use Pimple\Container;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpFoundation\ParameterBag;
@@ -27,6 +28,7 @@ use function ErkinApp\Helpers\get_class_short_name;
  * @property string $area
  * @property Query $db
  * @property Container $container
+ * @property Logger $logger
  */
 abstract class Controller
 {

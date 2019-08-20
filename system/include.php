@@ -1,14 +1,6 @@
 <?php
 
-//spl_autoload_register(function ($class_name) {
-//    if (file_exists(__DIR__ . '/../libraries/' . $class_name . '.php')) {
-//        include_once __DIR__ . '/../libraries/' . $class_name . '.php';
-//    } else if (file_exists(__DIR__ . '/libraries/' . $class_name . '.php')) {
-//        include_once __DIR__ . '/libraries/' . $class_name . '.php';
-//    }
-//});
-
-include_once 'config.php';
+include_once __DIR__ . 'config/constants.php';
 
 foreach (glob(__DIR__ . '/helpers/*_helper.php') as $file) {
     include_once $file;
@@ -24,3 +16,11 @@ if (defined('BASE_PATH')) {
 unset($file);
 
 include_once __DIR__ . '/libraries/simple_html_dom.php';
+
+$dependencies = require_once __DIR__ . '/config/dependencies.php';
+$dependencies();
+
+if (file_exists(APP_PATH . '/config/dependencies.php')) {
+    $dependencies = require_once APP_PATH . '/config/dependencies.php';
+    $dependencies();
+}

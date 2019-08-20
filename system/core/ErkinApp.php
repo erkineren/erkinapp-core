@@ -370,6 +370,11 @@ class ErkinApp implements HttpKernelInterface
         return $this->routes;
     }
 
+    public function Logger()
+    {
+        return $this->Get('logger');
+    }
+
     /**
      * @param Request $request
      * @param int $type

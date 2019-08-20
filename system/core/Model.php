@@ -120,6 +120,14 @@ abstract class Model
     }
 
     /**
+     * @return bool
+     */
+    function rollback()
+    {
+        return $this->db->getPdo()->rollBack();
+    }
+
+    /**
      *
      *  Use batch operation
      *
