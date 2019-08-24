@@ -31,7 +31,7 @@ namespace ErkinApp\Helpers {
                 $where .= "$column LIKE '%{$search['value']}%'";
             }
         }
-        $q->where($where);
+        if ($where) $q->where("($where)");
 
         if ($order = $controller->_post('order')) {
             if (isset($columns[$order[0]['column']])) {

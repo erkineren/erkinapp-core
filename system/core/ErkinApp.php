@@ -437,6 +437,10 @@ class ErkinApp implements HttpKernelInterface
 
                 $ctrl_method_path = strtolower($this->getCurrentContollerShortName()) . '/' . strtolower($method);
 
+                // Parametreleri kontrol et
+                $r = new ReflectionMethod($ctrl, $method);
+                $params = $r->getParameters();
+
                 /*
                  * If default dynamic routing, route and contoller/method strings are similar
                  */
@@ -450,31 +454,25 @@ class ErkinApp implements HttpKernelInterface
                         $method_parameters = array_slice(explode('/', $attributes['_route']), 3);
                     }
 
-
-                    // Parametreleri kontrol et
-                    $r = new ReflectionMethod($ctrl, $method);
-                    $params = $r->getParameters();
-                    foreach ($params as $key => $param) {
-                        if (!isset($method_parameters[$key]) && !$param->isOptional()) {
-//                            return new Response($param->getName() . " is required parameter");
-                            throw new ErkinAppException($param->getName() . " is required parameter");
-                        }
-                    }
-
                 } /*
                  * If not,
                  * Custom routing must be handle
                  * Controller method parameters must be handle properly
                  */
                 else {
-                    unset($attributes['_route']);
-                    $makeSort = true;
-                    foreach ($attributes as $_key => $attribute) {
-                        if (strpos($_key, '_') === false) $makeSort = false;
+                    $method_parameters = [];
+                    foreach (array_column($params, 'name') as $paramName) {
+                        if (isset($attributes[$paramName]))
+                            $method_parameters[] = $attributes[$paramName];
                     }
-                    if ($makeSort) ksort($attributes);
-                    $method_parameters = $attributes;
                 }
+
+                foreach ($params as $key => $param) {
+                    if (!isset($method_parameters[$key]) && !$param->isOptional()) {
+                        throw new ErkinAppException($param->getName() . " is required parameter");
+                    }
+                }
+
                 $this->setCurrentMethodArgs($method_parameters);
 
                 $controllerActionEventName = implode('_', explode("\\", get_class($ctrl))) . '::' . $method;
