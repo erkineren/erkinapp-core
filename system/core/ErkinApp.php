@@ -146,58 +146,11 @@ class ErkinApp implements HttpKernelInterface
     }
 
     /**
-     * @param $name
-     * @return bool|Model|Model[]|mixed|Container|EventDispatcher|\Symfony\Component\HttpFoundation\ParameterBag|Request|\Symfony\Component\HttpFoundation\Session\SessionInterface|null
+     * @return \Symfony\Component\HttpFoundation\ParameterBag
      */
-    public function Get($name)
+    public function RequestGet()
     {
-        switch ($name) {
-            case 'sessions':
-                return $this->Session();
-            case 'cookies':
-                return $this->Request()->cookies;
-            case 'request':
-                return $this->Request();
-            case 'dispatcher':
-                return $this->Dispatcher();
-            case 'models':
-                return $this->Models();
-            case 'area':
-                return $this->getCurrentArea();
-            case 'db':
-                return $this->DB('default');
-            case 'container':
-                return $this->Container();
-        }
-
-
-        /*
-         * Dynamically access models
-         *
-         *
-         * $this->modelAccount   => return Application\Model\{area-controller-in}\Account
-         * $this->modelFrontendAccount   => return Application\Model\Frontend\Account
-         * $this->modelBackendAccount   => return Application\Model\Backend\Account
-         */
-        if (strpos($name, 'model') === 0) {
-            $parts = split_camel_case($name);
-            if (!in_array($parts[1], [Constants::AREA_FRONTEND, Constants::AREA_BACKEND, Constants::AREA_API])) {
-                array_splice($parts, 1, 0, ucfirst($this->currentArea));
-            }
-            $modelname = implode('\\', array_slice($parts, 1, 1)) . '\\' . implode('', array_slice($parts, 2));
-            $modelclass = 'Application\\Model\\' . $modelname;
-            return $this->Models($modelclass);
-        }
-
-        return $this->Container()->offsetGet($name);
-    }
-
-    /**
-     * @return \Symfony\Component\HttpFoundation\Session\SessionInterface|null
-     */
-    public function Session()
-    {
-        return $this->request->getSession();
+        return $this->Request()->query;
     }
 
     /**
@@ -209,73 +162,6 @@ class ErkinApp implements HttpKernelInterface
             $this->request = Request::createFromGlobals();
         }
         return $this->request;
-    }
-
-    /**
-     * @return EventDispatcher
-     */
-    public function Dispatcher()
-    {
-        return $this->dispatcher;
-    }
-
-    /**
-     * @param string $class
-     * @return bool|Model|Model[]
-     */
-    public function Models($class = '')
-    {
-        if (!$class) return $this->models;
-        if (!class_exists($class)) return false;
-
-        if (!isset($this->models[$class])) $this->models[$class] = new $class();
-
-        return $this->models[$class];
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getCurrentArea()
-    {
-        return $this->currentArea;
-    }
-
-    /**
-     * @param mixed $currentArea
-     */
-    public function setCurrentArea($currentArea)
-    {
-        $this->currentArea = $currentArea;
-    }
-
-    /**
-     * @param Query $db
-     * @return mixed
-     */
-    public function &DB($dbkey)
-    {
-        if (!array_key_exists($dbkey, DB_CONFIG)) return false;
-
-        if (!isset($this->databases[$dbkey])) $this->databases[$dbkey] = $this->_loadDb($dbkey);
-
-        return $this->databases[$dbkey];
-    }
-
-    /**
-     * @return Container
-     */
-    public function Container()
-    {
-        return $this->container;
-    }
-
-    /**
-     * @return \Symfony\Component\HttpFoundation\ParameterBag
-     */
-    public function RequestGet()
-    {
-        return $this->Request()->query;
     }
 
     /**
@@ -373,6 +259,120 @@ class ErkinApp implements HttpKernelInterface
     public function Logger()
     {
         return $this->Get('logger');
+    }
+
+    /**
+     * @param $name
+     * @return bool|Model|Model[]|mixed|Container|EventDispatcher|\Symfony\Component\HttpFoundation\ParameterBag|Request|\Symfony\Component\HttpFoundation\Session\SessionInterface|null
+     */
+    public function Get($name)
+    {
+        switch ($name) {
+            case 'sessions':
+                return $this->Session();
+            case 'cookies':
+                return $this->Request()->cookies;
+            case 'request':
+                return $this->Request();
+            case 'dispatcher':
+                return $this->Dispatcher();
+            case 'models':
+                return $this->Models();
+            case 'area':
+                return $this->getCurrentArea();
+            case 'db':
+                return $this->DB('default');
+            case 'container':
+                return $this->Container();
+        }
+
+
+        /*
+         * Dynamically access models
+         *
+         *
+         * $this->modelAccount   => return Application\Model\{area-controller-in}\Account
+         * $this->modelFrontendAccount   => return Application\Model\Frontend\Account
+         * $this->modelBackendAccount   => return Application\Model\Backend\Account
+         */
+        if (strpos($name, 'model') === 0) {
+            $parts = split_camel_case($name);
+            if (!in_array($parts[1], [Constants::AREA_FRONTEND, Constants::AREA_BACKEND, Constants::AREA_API])) {
+                array_splice($parts, 1, 0, ucfirst($this->currentArea));
+            }
+            $modelname = implode('\\', array_slice($parts, 1, 1)) . '\\' . implode('', array_slice($parts, 2));
+            $modelclass = 'Application\\Model\\' . $modelname;
+            return $this->Models($modelclass);
+        }
+
+        return $this->Container()->offsetGet($name);
+    }
+
+    /**
+     * @return \Symfony\Component\HttpFoundation\Session\SessionInterface|null
+     */
+    public function Session()
+    {
+        return $this->request->getSession();
+    }
+
+    /**
+     * @return EventDispatcher
+     */
+    public function Dispatcher()
+    {
+        return $this->dispatcher;
+    }
+
+    /**
+     * @param string $class
+     * @return bool|Model|Model[]
+     */
+    public function Models($class = '')
+    {
+        if (!$class) return $this->models;
+        if (!class_exists($class)) return false;
+
+        if (!isset($this->models[$class])) $this->models[$class] = new $class();
+
+        return $this->models[$class];
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getCurrentArea()
+    {
+        return $this->currentArea;
+    }
+
+    /**
+     * @param mixed $currentArea
+     */
+    public function setCurrentArea($currentArea)
+    {
+        $this->currentArea = $currentArea;
+    }
+
+    /**
+     * @param Query $db
+     * @return mixed
+     */
+    public function &DB($dbkey)
+    {
+        if (!array_key_exists($dbkey, DB_CONFIG)) return false;
+
+        if (!isset($this->databases[$dbkey])) $this->databases[$dbkey] = $this->_loadDb($dbkey);
+
+        return $this->databases[$dbkey];
+    }
+
+    /**
+     * @return Container
+     */
+    public function Container()
+    {
+        return $this->container;
     }
 
     /**
@@ -560,7 +560,12 @@ class ErkinApp implements HttpKernelInterface
             new Route(
                 $path,
                 array('controller' => $controller),
-                $requirements
+                $requirements,
+                $options,
+                $host,
+                $schemes,
+                $methods,
+                $condition
             )
         );
     }

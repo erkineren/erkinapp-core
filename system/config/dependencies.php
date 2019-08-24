@@ -13,7 +13,6 @@ return function () {
         if (defined('BASE_PATH')) {
             $log->pushHandler(new StreamHandler(BASE_PATH . '/app.log', Logger::WARNING));
         }
-
     };
 
 

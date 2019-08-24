@@ -10,7 +10,6 @@ use Symfony\Contracts\EventDispatcher\Event;
 
 class RoutingEvent extends Event
 {
-
     protected $request;
 
     public function __construct(Request $request)
@@ -18,9 +17,9 @@ class RoutingEvent extends Event
         $this->request = $request;
     }
 
-    public function map($path, $controller)
+    public function map($path, $controller, array $requirements = [], array $options = [], ?string $host = '', $schemes = [], $methods = [], ?string $condition = '')
     {
-        ErkinApp()->map($path, $controller);
+        ErkinApp()->map($path, $controller, $requirements, $options, $host, $schemes, $methods, $condition);
     }
 
     /**

@@ -8,7 +8,7 @@ use Monolog\Handler\AbstractProcessingHandler;
 use Monolog\Logger;
 use PDO;
 
-class PdoMonologHandlerandler extends AbstractProcessingHandler
+class PdoMonologHandler extends AbstractProcessingHandler
 {
     /**
      * @var bool

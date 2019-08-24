@@ -83,11 +83,6 @@ abstract class Controller
         return ErkinApp()->DB($dbkey);
     }
 
-    public function dispatch($event, $eventName = null)
-    {
-        return $this->dispatcher->dispatch($event, $eventName);
-    }
-
     public function renderViewPlain($__view = '', $__data = [])
     {
         return $this->renderView($__view, $__data, false);
@@ -138,6 +133,11 @@ abstract class Controller
             include APP_PATH . '/View/' . $this->area . '/_parts/end.php';
 
         return new Response(ob_get_clean());
+    }
+
+    public function dispatch($event, $eventName = null)
+    {
+        return $this->dispatcher->dispatch($event, $eventName);
     }
 
     public function renderViews(array $views, $includeParts = true)

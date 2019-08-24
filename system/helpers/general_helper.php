@@ -2,8 +2,6 @@
 
 namespace ErkinApp\Helpers {
 
-    use ErkinApp\Events\ErrorEvent;
-    use ErkinApp\Events\Events;
     use ReflectionClass;
 
     function get_class_short_name($class)
