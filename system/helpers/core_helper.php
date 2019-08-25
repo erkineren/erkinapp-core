@@ -178,7 +178,7 @@ namespace ErkinApp\Helpers {
      * @param array $__data
      * @return bool|false|string
      */
-    function getView($__filename, $__data = [])
+    function getView($__filename, $__data = [], $includeParts = false)
     {
         $__filename = ltrim($__filename, '/');
 
@@ -195,7 +195,15 @@ namespace ErkinApp\Helpers {
             extract($__data);
 
         ob_start();
+
+        if ($includeParts && file_exists(APP_PATH . '/View/' . ErkinApp()->getCurrentArea() . '/_parts/head.php'))
+            include APP_PATH . '/View/' . ErkinApp()->getCurrentArea() . '/_parts/head.php';
+
         include $viewfile;
+
+        if ($includeParts && file_exists(APP_PATH . '/View/' . ErkinApp()->getCurrentArea() . '/_parts/end.php'))
+            include APP_PATH . '/View/' . ErkinApp()->getCurrentArea() . '/_parts/end.php';
+
         return ob_get_clean();
     }
 
