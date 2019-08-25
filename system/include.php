@@ -18,7 +18,9 @@ unset($file);
 include_once __DIR__ . '/libraries/simple_html_dom.php';
 
 $dependencies = require_once __DIR__ . '/config/dependencies.php';
+$events = require_once __DIR__ . '/config/events.php';
 $dependencies();
+$events();
 
 if (file_exists(APP_PATH . '/config/dependencies.php')) {
     $dependencies = require_once APP_PATH . '/config/dependencies.php';
