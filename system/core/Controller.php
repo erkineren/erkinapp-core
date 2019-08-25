@@ -44,8 +44,7 @@ abstract class Controller
      */
     public function __construct()
     {
-
-        $this->area = explode('\\', get_called_class())[2];
+        ErkinApp::getInstance()->setCurrentArea(explode('\\', get_called_class())[2]);
 
         // Controller'ın kendi modelini yükle
         $modelclass = str_replace('\\Controller\\', '/Model/', get_called_class());

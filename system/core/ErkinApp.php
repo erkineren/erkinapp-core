@@ -413,9 +413,7 @@ class ErkinApp implements HttpKernelInterface
                 $ctrl = new $controller[0]();
 
                 if ($ctrl instanceof IAuthController) {
-
                     if (!$ctrl->isLoggedIn() && !$ctrl->isLoginPage()) {
-
                         return $ctrl->goToLogin();
                     }
                 }
@@ -427,10 +425,6 @@ class ErkinApp implements HttpKernelInterface
                     if ($actionNotFoundEvent->hasResponse()) {
                         return $actionNotFoundEvent->getResponse();
                     } else {
-//                        (new Response())
-//                            ->setStatusCode(Response::HTTP_NOT_FOUND)
-//                            ->setContent("Action not exist : {$method}")
-//                            ->send();
                         throw new ErkinAppException("Action not exist : {$method}");
                     }
                 }
@@ -477,8 +471,12 @@ class ErkinApp implements HttpKernelInterface
 
                 $controllerActionEventName = implode('_', explode("\\", get_class($ctrl))) . '::' . $method;
 
-                $this->dispatcher->dispatch(new ControllerActionEvent($ctrl, $method, $method_parameters, $request), 'Application_Controller_' . $this->currentArea . '::before');
+                $this->dispatcher->dispatch(new ControllerActionEvent($ctrl, $method, $method_parameters, $request), 'Application_Controller_' . $this->getCurrentArea() . '::before');
                 $this->dispatcher->dispatch(new ControllerActionEvent($ctrl, $method, $method_parameters, $request), $controllerActionEventName . '::before');
+
+                $this->setCurrentContoller($ctrl);
+                $this->setCurrentMethod($method);
+                $this->setCurrentMethodArgs($method_parameters);
 
                 $response = call_user_func_array(
                     [
