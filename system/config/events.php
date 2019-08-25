@@ -19,7 +19,14 @@ return function () {
                     foreach ($ans as $an) {
                         /** Symfony\Component\Routing\Annotation\Route $an */
                         if ($an instanceof Symfony\Component\Routing\Annotation\Route) {
-                            $event->map($an->getPath(), [$class, $method->getName()]);
+                            $event->map($an->getPath(),
+                                [$class, $method->getName()],
+                                $an->getRequirements(),
+                                $an->getOptions(),
+                                $an->getHost(),
+                                $an->getSchemes(),
+                                $an->getMethods(),
+                                $an->getCondition());
                         }
                     }
                 }
