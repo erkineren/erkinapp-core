@@ -16,7 +16,7 @@ class WildCardRoute extends Route
     {
         if (isset($data['value']))
             $data['value'] = str_replace('{*}', '{wildcard}', $data['value']);
-        if (isset($data['value']))
+        if (isset($data['path']))
             $data['path'] = str_replace('{*}', '{wildcard}', $data['path']);
         $data['requirements']['wildcard'] = ".*";
         parent::__construct($data);
