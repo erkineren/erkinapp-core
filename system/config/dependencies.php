@@ -13,6 +13,7 @@ return function () {
         if (defined('BASE_PATH')) {
             $log->pushHandler(new StreamHandler(BASE_PATH . '/app.log', Logger::WARNING));
         }
+        return $log;
     };
 
     $container['classmaps'] = function (Container $c) {
@@ -26,12 +27,12 @@ return function () {
         $controllers = [];
         foreach (glob(APP_PATH . '/Controller' . '/{**/*.php,*.php}', GLOB_BRACE) as $ctrlFile) {
             $classname = $fnc($ctrlFile);
-            $controllers[$classname] = $ctrlFile;
+            $controllers[$classname] = realpath($ctrlFile);
         }
         $models = [];
         foreach (glob(APP_PATH . '/Model' . '/{**/*.php,*.php}', GLOB_BRACE) as $ctrlFile) {
             $classname = $fnc($ctrlFile);
-            $models[$classname] = $ctrlFile;
+            $models[$classname] = realpath($ctrlFile);
         }
         return [
             'controllers' => $controllers,
