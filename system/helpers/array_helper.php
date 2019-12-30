@@ -23,7 +23,7 @@ namespace ErkinApp\Helpers {
      * @param array
      * @return    mixed    depends on what the array contains
      */
-    function random_element($array)
+    function randomElement($array)
     {
         return is_array($array) ? $array[array_rand($array)] : $array;
     }
@@ -52,7 +52,7 @@ namespace ErkinApp\Helpers {
         return $return;
     }
 
-    function array_to_where_in_str($arr, $key_name = null)
+    function arrayWhereInStr($arr, $key_name = null)
     {
         if ($key_name != null)
             $filtered = array_column($arr, $key_name);
@@ -66,15 +66,15 @@ namespace ErkinApp\Helpers {
         return $str;
     }
 
-    function make_in_str($in_data)
+    function makeInStr($in_data)
     {
         $in_str = $in_data;
         if (is_array($in_data)) $in_str = implode("','", $in_data);
-        else return make_in_str(explode(',', $in_data));
+        else return makeInStr(explode(',', $in_data));
         return "'" . $in_str . "'";
     }
 
-    function array_select_columns($arr, $columns)
+    function arraySelectColumns($arr, $columns)
     {
         return array_map(
             function ($a) use ($columns) {
@@ -84,7 +84,7 @@ namespace ErkinApp\Helpers {
         );
     }
 
-    function array_select_inner_columns($arr, $column)
+    function arraySelectInnerColumns($arr, $column)
     {
         return array_map(
             function ($a) use ($column) {
@@ -94,7 +94,7 @@ namespace ErkinApp\Helpers {
         );
     }
 
-    function array_unselect_columns_multi($arr, $columns)
+    function arrayUnselectColumnsMulti($arr, $columns)
     {
         return array_map(
             function ($a) use ($columns) {
@@ -104,12 +104,12 @@ namespace ErkinApp\Helpers {
         );
     }
 
-    function array_unselect_columns($arr, $columns)
+    function arrayUnselectColumns($arr, $columns)
     {
         return array_diff_key($arr, array_flip($columns));
     }
 
-    function array_sort($array, $on, $order = SORT_ASC)
+    function arraySort($array, $on, $order = SORT_ASC)
     {
 
         $new_array = array();
@@ -145,7 +145,7 @@ namespace ErkinApp\Helpers {
         return $new_array;
     }
 
-    function compare_array($a, $b, $column)
+    function compareArray($a, $b, $column)
     {
         $a_c = array_column($a, $column);
         $b_c = array_column($b, $column);
@@ -160,7 +160,7 @@ namespace ErkinApp\Helpers {
         return $data;
     }
 
-    function my_array_intersect($a, $b, $column)
+    function arrayIntersect($a, $b, $column)
     {
         $a_c = array_column($a, $column);
         $b_c = array_column($b, $column);
@@ -175,7 +175,7 @@ namespace ErkinApp\Helpers {
         return $data;
     }
 
-    function array_make_column_key($array, $column, $remove_column = false)
+    function arrayMakeColumnKey($array, $column, $remove_column = false)
     {
         $result = [];
         foreach ($array as $key => $value) {
@@ -188,7 +188,7 @@ namespace ErkinApp\Helpers {
         return $result;
     }
 
-    function array_make_key_value_pair($array, $key_column, $value_column, $group = false)
+    function arrayMakeKeyValuePair($array, $key_column, $value_column, $group = false)
     {
         $result = [];
         foreach ($array as $key => $value) {
@@ -201,7 +201,7 @@ namespace ErkinApp\Helpers {
         return $result;
     }
 
-    function array_search_all($needle, array $haystack)
+    function arraySearchMulti($needle, array $haystack)
     {
         $result_keys = [];
         foreach ($haystack as $key => $item) {

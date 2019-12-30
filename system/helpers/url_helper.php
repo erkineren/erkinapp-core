@@ -8,7 +8,7 @@ namespace ErkinApp\Helpers {
      * @param string $path
      * @return string
      */
-    function site_url($path = '')
+    function siteUrl($path = '')
     {
         $request = ErkinApp::getInstance()->Request();
         $url = $request->getSchemeAndHttpHost() . $request->getBasePath() . '/' . $path;
@@ -20,7 +20,7 @@ namespace ErkinApp\Helpers {
      * @param string $path
      * @return string
      */
-    function backend_url($path = '')
+    function backendUrl($path = '')
     {
         $request = ErkinApp::getInstance()->Request();
         $url = $request->getSchemeAndHttpHost() . $request->getBasePath() . '/' . BACKEND_AREA_NAME . '/' . $path;
@@ -33,7 +33,7 @@ namespace ErkinApp\Helpers {
      * @param bool $version
      * @return string
      */
-    function asset_url($path, $version = true)
+    function assetUrl($path, $version = true)
     {
         $request = ErkinApp::getInstance()->Request();
 
@@ -49,9 +49,9 @@ namespace ErkinApp\Helpers {
      * @param string $path_as_args
      * @return string
      */
-    function self_method_url($path_as_args = '')
+    function selfMethodUrl($path_as_args = '')
     {
-        return site_url(rtrim(ErkinApp::getInstance()->getCurrentActionMethodPath(), "/") . '/' . $path_as_args);
+        return siteUrl(rtrim(ErkinApp::getInstance()->getCurrentActionMethodPath(), "/") . '/' . $path_as_args);
     }
 
     /**
@@ -59,7 +59,7 @@ namespace ErkinApp\Helpers {
      * @param bool $rtrimslash
      * @return string
      */
-    function uri_string($path = '', $rtrimslash = true)
+    function uriString($path = '', $rtrimslash = true)
     {
         $request = ErkinApp::getInstance()->Request();
 
@@ -75,7 +75,7 @@ namespace ErkinApp\Helpers {
      * @param $paths
      * @return bool
      */
-    function is_current_path($paths)
+    function isCurrentPath($paths)
     {
         if (!is_array($paths)) $paths = [$paths];
 
@@ -90,7 +90,7 @@ namespace ErkinApp\Helpers {
      * @param $actionMethodPath
      * @return bool
      */
-    function is_current_action_path($actionMethodPath)
+    function isCurrentActionPath($actionMethodPath)
     {
         return ErkinApp::getInstance()->getCurrentActionMethodPath() == $actionMethodPath;
     }
@@ -99,7 +99,7 @@ namespace ErkinApp\Helpers {
      * @param $controllerPath
      * @return bool
      */
-    function is_current_controller_path($controllerPath)
+    function isCurrentControllerPath($controllerPath)
     {
         return ErkinApp::getInstance()->getCurrentContollerPath() == strtolower($controllerPath);
     }

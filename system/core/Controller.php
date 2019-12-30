@@ -14,7 +14,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
-use function ErkinApp\Helpers\get_class_short_name;
+use function ErkinApp\Helpers\getClassShortName;
 
 /**
  * Class Controller
@@ -103,7 +103,7 @@ abstract class Controller
          * Örnek: anasayfa için index/index.php dosyasını bul
          */
         if (!$__view) {
-            $__called_controller_short_name = strtolower(get_class_short_name(get_class(debug_backtrace()[1]['object'])));
+            $__called_controller_short_name = strtolower(getClassShortName(get_class(debug_backtrace()[1]['object'])));
             $__view = $__called_controller_short_name . '/' . debug_backtrace()[1]['function'];
             if (strpos($__view, 'renderViewPlain') !== false)
                 $__view = $__called_controller_short_name . '/' . debug_backtrace()[2]['function'];

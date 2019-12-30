@@ -1,7 +1,7 @@
 <?php
 
 namespace ErkinApp\Helpers {
-    function _yaz($data, $die = true)
+    function debugPrint($data, $die = true)
     {
         echo '<pre>';
 
@@ -15,7 +15,7 @@ namespace ErkinApp\Helpers {
             die;
     }
 
-    function _varexport($data, $die = true)
+    function debugVarExport($data, $die = true)
     {
         highlight_string("<?php\n " . var_export($data, true) . ";\n ?>");
         echo '<script>document.getElementsByTagName("code")[0].getElementsByTagName("span")[1].remove() ;document.getElementsByTagName("code")[0].getElementsByTagName("span")[document.getElementsByTagName("code")[0].getElementsByTagName("span").length - 1].remove() ; </script>';

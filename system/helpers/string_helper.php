@@ -5,7 +5,7 @@ namespace ErkinApp\Helpers {
      * @param $input
      * @return array[]|false|string[]
      */
-    function split_camel_case($input)
+    function splitCamelCase($input)
     {
         return preg_split(
             '/(^[^A-Z]+|[A-Z][^A-Z]+)/',
@@ -20,7 +20,7 @@ namespace ErkinApp\Helpers {
      * @param $input
      * @return string|string[]|null
      */
-    function clean_input($input)
+    function cleanInput($input)
     {
 
         $search = array(
@@ -48,7 +48,7 @@ namespace ErkinApp\Helpers {
             if (get_magic_quotes_gpc()) {
                 $input = stripslashes($input);
             }
-            $input = clean_input($input);
+            $input = cleanInput($input);
             $output = addslashes($input);
         }
         return $output;
@@ -58,7 +58,7 @@ namespace ErkinApp\Helpers {
      * @param $data
      * @return string
      */
-    function xss_clean($data)
+    function xssClean($data)
     {
 // Fix &entity\n;
         $data = str_replace(array('&amp;', '&lt;', '&gt;'), array('&amp;amp;', '&amp;lt;', '&amp;gt;'), $data);
@@ -114,7 +114,7 @@ namespace ErkinApp\Helpers {
      * @param $input
      * @return false|int
      */
-    function is_alpha_numeric($input)
+    function isAlphaNumeric($input)
     {
         return preg_match('/^[a-zA-Z]+[a-zA-Z0-9._]+$/', $input);
     }
@@ -123,7 +123,7 @@ namespace ErkinApp\Helpers {
      * @param $input
      * @return false|int
      */
-    function is_only_numeric($input)
+    function isOnlyNumeric($input)
     {
         return preg_match('#[^0-9]#', $input);
     }
@@ -132,7 +132,7 @@ namespace ErkinApp\Helpers {
      * @param $input
      * @return false|int
      */
-    function is_alpha_numeric_with_dash($input)
+    function isAlphaNumericWithDash($input)
     {
         return preg_match('/^[a-zA-Z0-9-_]+$/i', $input);
     }
@@ -142,7 +142,7 @@ namespace ErkinApp\Helpers {
      * @param int $length
      * @return string
      */
-    function utf8_uri_encode($utf8_string, $length = 0)
+    function utf8UriEncode($utf8_string, $length = 0)
     {
         $unicode = '';
         $values = array();
@@ -188,7 +188,7 @@ namespace ErkinApp\Helpers {
      * @param $str
      * @return bool
      */
-    function seems_utf8($str)
+    function seemsUtf8($str)
     {
         $length = strlen($str);
         for ($i = 0; $i < $length; $i++) {
@@ -223,11 +223,11 @@ namespace ErkinApp\Helpers {
         // Restore octets.
         $text = preg_replace('|---([a-fA-F0-9][a-fA-F0-9])---|', '%$1', $text);
 
-        if (seems_utf8($text)) {
+        if (seemsUtf8($text)) {
             if (function_exists('mb_strtolower')) {
                 $text = mb_strtolower($text, 'UTF-8');
             }
-            $text = utf8_uri_encode($text, 200);
+            $text = utf8UriEncode($text, 200);
         }
 
         $text = strtolower($text);

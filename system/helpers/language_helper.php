@@ -17,7 +17,7 @@ namespace ErkinApp\Helpers {
         return $lang;
     }
 
-    function _l($key, $label = '')
+    function ln($key, $label = '')
     {
         $line = ErkinApp()->Language($key);
         if (!$line) return implode(' ', array_map('ucfirst', explode('_', $key)));

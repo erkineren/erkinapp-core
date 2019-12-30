@@ -30,7 +30,7 @@ namespace ErkinApp\Helpers {
      * @param string $destination
      * @return bool
      */
-    function unzip_file($zipfile, $destination = './')
+    function unzipFile($zipfile, $destination = './')
     {
         $zip = new ZipArchive;
         $res = $zip->open($zipfile);

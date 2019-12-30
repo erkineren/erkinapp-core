@@ -4,7 +4,7 @@ namespace ErkinApp\Helpers {
 
     use ReflectionClass;
 
-    function get_class_short_name($class)
+    function getClassShortName($class)
     {
         try {
             return (new ReflectionClass($class))->getShortName();
@@ -16,7 +16,7 @@ namespace ErkinApp\Helpers {
     /**
      * @return string
      */
-    function get_current_controller_pretty()
+    function getCurrentControllerPretty()
     {
         $str = (implode(' ', array_map('ucfirst', explode('_', ErkinApp()->getCurrentContollerShortName()))));
         if (strtolower($str) == 'index') return '';
@@ -26,7 +26,7 @@ namespace ErkinApp\Helpers {
     /**
      * @return string
      */
-    function get_current_method_pretty()
+    function getCurrentMethodPretty()
     {
         $str = (implode(' ', array_map('ucfirst', explode('_', ErkinApp()->getCurrentMethod()))));
         if (strtolower($str) == 'index') return '';
@@ -45,7 +45,7 @@ namespace ErkinApp\Helpers {
      * @param $type
      * @param $message
      */
-    function set_alert($type, $message)
+    function setAlert($type, $message)
     {
         getFlashBag()->add($type, $message);
     }
@@ -53,7 +53,7 @@ namespace ErkinApp\Helpers {
     /**
      * @return bool
      */
-    function is_ajax_request()
+    function isAjaxRequest()
     {
         return (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest');
     }

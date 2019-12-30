@@ -28,10 +28,10 @@ use Symfony\Component\Routing\Matcher\UrlMatcher;
 use Symfony\Component\Routing\RequestContext;
 use Symfony\Component\Routing\Route;
 use Symfony\Component\Routing\RouteCollection;
-use function ErkinApp\Helpers\get_class_short_name;
+use function ErkinApp\Helpers\getClassShortName;
 use function ErkinApp\Helpers\loadDefaultLanguage;
 use function ErkinApp\Helpers\loadLanguage;
-use function ErkinApp\Helpers\split_camel_case;
+use function ErkinApp\Helpers\splitCamelCase;
 
 class ErkinApp implements HttpKernelInterface
 {
@@ -296,7 +296,7 @@ class ErkinApp implements HttpKernelInterface
          * $this->modelBackendAccount   => return Application\Model\Backend\Account
          */
         if (strpos($name, 'model') === 0) {
-            $parts = split_camel_case($name);
+            $parts = splitCamelCase($name);
             if (!in_array($parts[1], [Constants::AREA_FRONTEND, Constants::AREA_BACKEND, Constants::AREA_API])) {
                 array_splice($parts, 1, 0, ucfirst($this->currentArea));
             }
@@ -535,7 +535,7 @@ class ErkinApp implements HttpKernelInterface
     public function getCurrentContollerShortName()
     {
         try {
-            return get_class_short_name($this->currentContoller);
+            return getClassShortName($this->currentContoller);
         } catch (Exception $e) {
             return $this->currentContoller;
         }
@@ -608,9 +608,9 @@ class ErkinApp implements HttpKernelInterface
     public function getCurrentActionMethodPath()
     {
         if ($this->getCurrentArea() == 'Frontend')
-            return strtolower(get_class_short_name($this->currentContoller)) . '/' . $this->getCurrentMethod();
+            return strtolower(getClassShortName($this->currentContoller)) . '/' . $this->getCurrentMethod();
         else
-            return strtolower($this->getCurrentArea()) . '/' . strtolower(get_class_short_name($this->currentContoller)) . '/' . $this->getCurrentMethod();
+            return strtolower($this->getCurrentArea()) . '/' . strtolower(getClassShortName($this->currentContoller)) . '/' . $this->getCurrentMethod();
     }
 
     /**
@@ -635,9 +635,9 @@ class ErkinApp implements HttpKernelInterface
     function getCurrentContollerPath()
     {
         if ($this->getCurrentArea() == 'Frontend')
-            return strtolower(get_class_short_name($this->getCurrentContoller()));
+            return strtolower(getClassShortName($this->getCurrentContoller()));
         else
-            return strtolower($this->getCurrentArea()) . '/' . strtolower(get_class_short_name($this->getCurrentContoller()));
+            return strtolower($this->getCurrentArea()) . '/' . strtolower(getClassShortName($this->getCurrentContoller()));
     }
 
     /**
