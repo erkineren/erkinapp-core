@@ -11,7 +11,7 @@ namespace ErkinApp\Helpers {
     function site_url($path = '')
     {
         $request = ErkinApp::getInstance()->Request();
-        $url = $request->getScheme() . '://' . $request->getHost() . $request->getBasePath() . '/' . $path;
+        $url = $request->getSchemeAndHttpHost() . $request->getBasePath() . '/' . $path;
 
         return $url;
     }
@@ -23,7 +23,7 @@ namespace ErkinApp\Helpers {
     function backend_url($path = '')
     {
         $request = ErkinApp::getInstance()->Request();
-        $url = $request->getScheme() . '://' . $request->getHost() . $request->getBasePath() . '/' . BACKEND_AREA_NAME . '/' . $path;
+        $url = $request->getSchemeAndHttpHost() . $request->getBasePath() . '/' . BACKEND_AREA_NAME . '/' . $path;
 
         return $url;
     }
@@ -37,7 +37,7 @@ namespace ErkinApp\Helpers {
     {
         $request = ErkinApp::getInstance()->Request();
 
-        $url = $request->getScheme() . '://' . $request->getHost() . $request->getBasePath() . '/assets/' . $path;
+        $url = $request->getSchemeAndHttpHost() . $request->getBasePath() . '/assets/' . $path;
 
         if ($version && file_exists('assets/' . $path))
             $url .= '?v=' . filemtime('assets/' . $path);
@@ -63,7 +63,7 @@ namespace ErkinApp\Helpers {
     {
         $request = ErkinApp::getInstance()->Request();
 
-        $url = $request->getScheme() . '://' . $request->getHost() . $request->getBasePath() . $request->getPathInfo();
+        $url = $request->getSchemeAndHttpHost() . $request->getBasePath() . $request->getPathInfo();
 
         if ($rtrimslash)
             $url = rtrim($url, "/") . '/';
