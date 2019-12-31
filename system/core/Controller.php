@@ -32,44 +32,30 @@ use function ErkinApp\Helpers\getClassShortName;
  */
 abstract class Controller
 {
-    /**
-     * @var Model
-     */
-    protected $model;
-
 
     /**
      * BaseController constructor.
-     * @param Request $request
+     * @throws Exceptions\ErkinAppException
      */
     public function __construct()
     {
         ErkinApp::getInstance()->setCurrentArea(explode('\\', get_called_class())[2]);
-
-        // Controller'ın kendi modelini yükle
-        $modelclass = str_replace('\\Controller\\', '/Model/', get_called_class());
-        $modelclass = str_replace('/', '\\', $modelclass);
-
-        $this->model = ErkinApp()->Models($modelclass);
     }
 
+    /**
+     * @param $name
+     * @return bool|\ErkinApp\Container|Model|Model[]|mixed|EventDispatcher|ParameterBag|Request|SessionInterface|null
+     * @throws \Exception
+     */
     public function __get($name)
     {
         return ErkinApp()->Get($name);
     }
 
-
-    /**
-     * @return Model[]
-     */
-    public function getModels()
-    {
-        return ErkinApp()->Models();
-    }
-
     /**
      * @param string $class
      * @return bool|Model
+     * @throws Exceptions\ErkinAppException
      */
     public function getModel($class = '')
     {
@@ -77,6 +63,11 @@ abstract class Controller
         return ErkinApp()->Models($class);
     }
 
+    /**
+     * @param string $dbkey
+     * @return \PDO|null
+     * @throws \Exception
+     */
     public function getDb($dbkey = 'default')
     {
         return ErkinApp()->DB($dbkey);
