@@ -3,9 +3,10 @@
 namespace ErkinApp;
 
 
+use ArgumentCountError;
 use Closure;
 use DateTime;
-use Envms\FluentPDO\Query;
+use ErkinApp\Components\Config;
 use ErkinApp\Events\ActionNotFoundEvent;
 use ErkinApp\Events\ControllerActionEvent;
 use ErkinApp\Events\ErrorEvent;
@@ -15,13 +16,15 @@ use ErkinApp\Events\ResponseEvent;
 use ErkinApp\Exceptions\ErkinAppException;
 use Exception;
 use PDO;
-use Pimple\Container;
 use ReflectionMethod;
+use Symfony\Component\EventDispatcher\Event;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\Session;
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\Routing\Exception\ResourceNotFoundException;
 use Symfony\Component\Routing\Matcher\UrlMatcher;
@@ -31,7 +34,6 @@ use Symfony\Component\Routing\RouteCollection;
 use function ErkinApp\Helpers\getClassShortName;
 use function ErkinApp\Helpers\loadDefaultLanguage;
 use function ErkinApp\Helpers\loadLanguage;
-use function ErkinApp\Helpers\splitCamelCase;
 
 class ErkinApp implements HttpKernelInterface
 {
@@ -40,18 +42,6 @@ class ErkinApp implements HttpKernelInterface
      * @var ErkinApp
      */
     private static $instance;
-
-    /**
-     * Models singleton container
-     * @var Model[]
-     */
-    protected $models;
-
-    /**
-     * FleuntPdo instances container
-     * @var Query[]
-     */
-    protected $databases;
 
     /**
      * @var RouteCollection
@@ -75,26 +65,30 @@ class ErkinApp implements HttpKernelInterface
 
 
     protected $currentArea;
-    protected $currentContoller;
+    protected $currentController;
     protected $currentMethod;
     protected $currentMethodArgs;
     protected $languages;
 
+    /** @var Config */
+    private $config;
+
     /**
      * ErkinApp constructor.
+     * @throws ErkinAppException
      */
     private function __construct()
     {
         $this->container = new Container();
         $this->routes = new RouteCollection();
         $this->dispatcher = new EventDispatcher();
+        $session = new Session();
+
+        $this->config = $this->loadConfig();
+        $this->addConfigDotNotationToContainer();
 
         $this->request = Request::createFromGlobals();
-
-        $session = new Session();
         $this->request->setSession($session);
-
-        $this->databases['default'] = $this->_loadDb('default');
 
         if (defined('DEFAULT_LANGUAGE')) {
             $this->languages[DEFAULT_LANGUAGE] = loadDefaultLanguage();
@@ -103,41 +97,8 @@ class ErkinApp implements HttpKernelInterface
     }
 
     /**
-     * @param $dbkey
-     * @return bool|Query
-     */
-    protected function _loadDb($dbkey)
-    {
-        if (array_key_exists($dbkey, DB_CONFIG)) {
-            return $this->loadFluentPdo(
-                DB_CONFIG[$dbkey]['dsn'],
-                DB_CONFIG[$dbkey]['username'],
-                DB_CONFIG[$dbkey]['password']
-            );
-        }
-        return false;
-    }
-
-    /**
-     * @param $dsn
-     * @param $username
-     * @param $password
-     * @return Query
-     */
-    public function loadFluentPdo($dsn, $username, $password)
-    {
-        $pdo = new PDO($dsn, $username, $password);
-        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
-        $dt = new DateTime();
-        $offset = $dt->format("P");
-        $pdo->exec("SET NAMES 'utf8mb4'; SET CHARSET 'utf8'; SET time_zone='$offset';");
-
-        return new Query($pdo);
-    }
-
-    /**
      * @return ErkinApp
+     * @throws ErkinAppException
      */
     public static function getInstance()
     {
@@ -146,7 +107,7 @@ class ErkinApp implements HttpKernelInterface
     }
 
     /**
-     * @return \Symfony\Component\HttpFoundation\ParameterBag
+     * @return ParameterBag
      */
     public function RequestGet()
     {
@@ -165,11 +126,25 @@ class ErkinApp implements HttpKernelInterface
     }
 
     /**
-     * @return \Symfony\Component\HttpFoundation\ParameterBag
+     * @return ParameterBag
      */
     public function RequestPost()
     {
         return $this->Request()->request;
+    }
+
+    private function getUserInfo($user, $key = '')
+    {
+        if (is_array($user) && $key) {
+            if (isset($user[$key])) return $user[$key];
+            return false;
+        } elseif (is_object($user) && $key) {
+            if (isset($user->$key)) return $user->$key;
+            return false;
+        }
+        if (!$user) return false;
+
+        return $user;
     }
 
     /**
@@ -178,18 +153,7 @@ class ErkinApp implements HttpKernelInterface
      */
     public function UserFrontend($key = '')
     {
-        $user = $this->request->getSession()->get(SESSION_FRONTEND_AUTH);
-
-        if (is_array($user) && $key) {
-            if (isset($user[$key])) return $user[$key];
-            return false;
-        } elseif (is_object($user) && $key) {
-            if (isset($user->$key)) return $user->$key;
-            return false;
-        }
-        if (!$user) return false;
-
-        return $user;
+        return $this->getUserInfo($this->request->getSession()->get(SESSION_FRONTEND_AUTH), $key);
     }
 
     /**
@@ -198,16 +162,7 @@ class ErkinApp implements HttpKernelInterface
      */
     public function UserBackend($key = '')
     {
-        $user = $this->request->getSession()->get(SESSION_BACKEND_AUTH);
-        if (is_array($user) && $key) {
-            if (isset($user[$key])) return $user[$key];
-            return false;
-        } elseif (is_object($user) && $key) {
-            if (isset($user->$key)) return $user->$key;
-            return false;
-        }
-        if (!$user) return false;
-        return $user;
+        return $this->getUserInfo($this->request->getSession()->get(SESSION_BACKEND_AUTH), $key);
     }
 
     /**
@@ -216,16 +171,7 @@ class ErkinApp implements HttpKernelInterface
      */
     public function UserApi($key = '')
     {
-        $user = $this->request->getSession()->get(SESSION_API_AUTH);
-        if (is_array($user) && $key) {
-            if (isset($user[$key])) return $user[$key];
-            return false;
-        } elseif (is_object($user) && $key) {
-            if (isset($user->$key)) return $user->$key;
-            return false;
-        }
-        if (!$user) return false;
-        return $user;
+        return $this->getUserInfo($this->request->getSession()->get(SESSION_API_AUTH), $key);
     }
 
     /**
@@ -256,6 +202,10 @@ class ErkinApp implements HttpKernelInterface
         return $this->routes;
     }
 
+    /**
+     * @return bool|Container|Model|Model[]|mixed|EventDispatcher|ParameterBag|Request|SessionInterface|null
+     * @throws Exception
+     */
     public function Logger()
     {
         return $this->Get('logger');
@@ -263,7 +213,8 @@ class ErkinApp implements HttpKernelInterface
 
     /**
      * @param $name
-     * @return bool|Model|Model[]|mixed|Container|EventDispatcher|\Symfony\Component\HttpFoundation\ParameterBag|Request|\Symfony\Component\HttpFoundation\Session\SessionInterface|null
+     * @return bool|Model|Model[]|mixed|Container|EventDispatcher|ParameterBag|Request|SessionInterface|null
+     * @throws Exception
      */
     public function Get($name)
     {
@@ -276,8 +227,6 @@ class ErkinApp implements HttpKernelInterface
                 return $this->Request();
             case 'dispatcher':
                 return $this->Dispatcher();
-            case 'models':
-                return $this->Models();
             case 'area':
                 return $this->getCurrentArea();
             case 'db':
@@ -286,30 +235,15 @@ class ErkinApp implements HttpKernelInterface
                 return $this->Container();
         }
 
-
-        /*
-         * Dynamically access models
-         *
-         *
-         * $this->modelAccount   => return Application\Model\{area-controller-in}\Account
-         * $this->modelFrontendAccount   => return Application\Model\Frontend\Account
-         * $this->modelBackendAccount   => return Application\Model\Backend\Account
-         */
-        if (strpos($name, 'model') === 0) {
-            $parts = splitCamelCase($name);
-            if (!in_array($parts[1], [Constants::AREA_FRONTEND, Constants::AREA_BACKEND, Constants::AREA_API])) {
-                array_splice($parts, 1, 0, ucfirst($this->currentArea));
-            }
-            $modelname = implode('\\', array_slice($parts, 1, 1)) . '\\' . implode('', array_slice($parts, 2));
-            $modelclass = 'Application\\Model\\' . $modelname;
-            return $this->Models($modelclass);
+        if (!$this->container->offsetExists($name) && class_exists($name)) {
+            $this->container->offsetSet($name, new $name());
         }
 
-        return $this->Container()->offsetGet($name);
+        return $this->Container()->get($name);
     }
 
     /**
-     * @return \Symfony\Component\HttpFoundation\Session\SessionInterface|null
+     * @return SessionInterface|null
      */
     public function Session()
     {
@@ -326,16 +260,55 @@ class ErkinApp implements HttpKernelInterface
 
     /**
      * @param string $class
-     * @return bool|Model|Model[]
+     * @return Model
+     * @throws ErkinAppException
      */
-    public function Models($class = '')
+    public function Models($class)
     {
-        if (!$class) return $this->models;
-        if (!class_exists($class)) return false;
+        if (!class_exists($class))
+            throw new ErkinAppException("Model class not found");
+        return $this->container->get($class);
+    }
 
-        if (!isset($this->models[$class])) $this->models[$class] = new $class();
+    /**
+     * @return mixed
+     * @throws ErkinAppException
+     */
+    private function loadConfig()
+    {
+        $configFilePath = SYS_PATH . '/config/config.php';
+        if (!file_exists($configFilePath))
+            throw new ErkinAppException("Config file not found");
 
-        return $this->models[$class];
+        $config = include $configFilePath;
+
+        $this->container->offsetSet('config', $config);
+
+        return new Config($config);
+    }
+
+    private function addConfigDotNotationToContainer()
+    {
+        $configItems = $this->config->getAsDotNotation('config.');
+        foreach ($configItems as $key => $value) {
+            $this->container->offsetSet($key, $value);
+        }
+    }
+
+    /**
+     * @param $dsn
+     * @param $username
+     * @param $password
+     * @return PDO
+     * @throws Exception
+     */
+    public function loadPDO($dsn, $username, $password)
+    {
+        $pdo = new PDO($dsn, $username, $password);
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $offset = (new DateTime())->format("P");
+        $pdo->exec("SET NAMES 'utf8mb4'; SET CHARSET 'utf8'; SET time_zone='$offset';");
+        return $pdo;
     }
 
     /**
@@ -355,16 +328,30 @@ class ErkinApp implements HttpKernelInterface
     }
 
     /**
-     * @param Query $db
-     * @return mixed
+     * @param $dbKey
+     * @return PDO|null
+     * @throws Exception
      */
-    public function &DB($dbkey)
+    public function DB($dbKey)
     {
-        if (!array_key_exists($dbkey, DB_CONFIG)) return false;
+        $id = "db.$dbKey";
+        if ($dbKey == 'default') $id = 'db';
+        if (!$this->container->offsetGet($id)) {
+            $dsn = $this->config->get('db.dsn');
+            $host = $this->config->get('db.host');
+            $port = $this->config->get('db.port');
+            $username = $this->config->get('db.username');
+            $password = $this->config->get('db.password');
+            $dbname = $this->config->get('db.dbname');
 
-        if (!isset($this->databases[$dbkey])) $this->databases[$dbkey] = $this->_loadDb($dbkey);
+            if (!$dsn) {
+                $dsn = "mysql:dbname=$dbname;host=$host;port=$port;";
+            }
 
-        return $this->databases[$dbkey];
+            $this->container->offsetSet($id, $this->loadPDO($dsn, $username, $password));
+        }
+
+        return $this->container->offsetGet($id);
     }
 
     /**
@@ -429,14 +416,14 @@ class ErkinApp implements HttpKernelInterface
                     }
                 }
 
-                $ctrl_method_path = strtolower($this->getCurrentContollerShortName()) . '/' . strtolower($method);
+                $ctrl_method_path = strtolower($this->getCurrentControllerShortName()) . '/' . strtolower($method);
 
                 // Parametreleri kontrol et
                 $r = new ReflectionMethod($ctrl, $method);
                 $params = $r->getParameters();
 
                 /*
-                 * If default dynamic routing, route and contoller/method strings are similar
+                 * If default dynamic routing, route and controller/method strings are similar
                  */
                 if (strpos(strtolower($attributes['_route']), strtolower($ctrl_method_path)) !== false) {
 
@@ -474,7 +461,7 @@ class ErkinApp implements HttpKernelInterface
                 $this->dispatcher->dispatch(new ControllerActionEvent($ctrl, $method, $method_parameters, $request), 'Application_Controller_' . $this->getCurrentArea() . '::before');
                 $this->dispatcher->dispatch(new ControllerActionEvent($ctrl, $method, $method_parameters, $request), $controllerActionEventName . '::before');
 
-                $this->setCurrentContoller($ctrl);
+                $this->setCurrentController($ctrl);
                 $this->setCurrentMethod($method);
                 $this->setCurrentMethodArgs($method_parameters);
 
@@ -507,7 +494,7 @@ class ErkinApp implements HttpKernelInterface
             if ($errorEvent->hasResponse()) return $errorEvent->getResponse();
             else throw $e1;
 
-        } catch (\ArgumentCountError $e2) {
+        } catch (ArgumentCountError $e2) {
 //            throw $e2;
 //            $response = new Response('An error occurred ArgumentCountError: ' . $e2->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
             $errorEvent = $this->dispatcher->dispatch(new ErrorEvent($request, $e2), Events::ERROR);
@@ -532,12 +519,12 @@ class ErkinApp implements HttpKernelInterface
     /**
      * @return string
      */
-    public function getCurrentContollerShortName()
+    public function getCurrentControllerShortName()
     {
         try {
-            return getClassShortName($this->currentContoller);
+            return getClassShortName($this->currentController);
         } catch (Exception $e) {
-            return $this->currentContoller;
+            return $this->currentController;
         }
     }
 
@@ -579,7 +566,7 @@ class ErkinApp implements HttpKernelInterface
 
     /**
      * @param $event
-     * @return mixed|object|\Symfony\Component\EventDispatcher\Event|null
+     * @return mixed|object|Event|null
      */
     public function fire($event)
     {
@@ -608,9 +595,9 @@ class ErkinApp implements HttpKernelInterface
     public function getCurrentActionMethodPath()
     {
         if ($this->getCurrentArea() == 'Frontend')
-            return strtolower(getClassShortName($this->currentContoller)) . '/' . $this->getCurrentMethod();
+            return strtolower(getClassShortName($this->currentController)) . '/' . $this->getCurrentMethod();
         else
-            return strtolower($this->getCurrentArea()) . '/' . strtolower(getClassShortName($this->currentContoller)) . '/' . $this->getCurrentMethod();
+            return strtolower($this->getCurrentArea()) . '/' . strtolower(getClassShortName($this->currentController)) . '/' . $this->getCurrentMethod();
     }
 
     /**
@@ -632,28 +619,28 @@ class ErkinApp implements HttpKernelInterface
     /**
      * @return string
      */
-    function getCurrentContollerPath()
+    function getCurrentControllerPath()
     {
         if ($this->getCurrentArea() == 'Frontend')
-            return strtolower(getClassShortName($this->getCurrentContoller()));
+            return strtolower(getClassShortName($this->getCurrentController()));
         else
-            return strtolower($this->getCurrentArea()) . '/' . strtolower(getClassShortName($this->getCurrentContoller()));
+            return strtolower($this->getCurrentArea()) . '/' . strtolower(getClassShortName($this->getCurrentController()));
     }
 
     /**
      * @return mixed
      */
-    public function getCurrentContoller()
+    public function getCurrentController()
     {
-        return $this->currentContoller;
+        return $this->currentController;
     }
 
     /**
-     * @param mixed $currentContoller
+     * @param mixed $currentController
      */
-    public function setCurrentContoller($currentContoller)
+    public function setCurrentController($currentController)
     {
-        $this->currentContoller = $currentContoller;
+        $this->currentController = $currentController;
     }
 
 

@@ -1,8 +1,9 @@
 <?php
 
-include_once __DIR__ . '/config/constants.php';
+define('SYS_PATH', __DIR__);
+include_once SYS_PATH . '/config/constants.php';
 
-foreach (glob(__DIR__ . '/helpers/*_helper.php') as $file) {
+foreach (glob(SYS_PATH . '/helpers/*_helper.php') as $file) {
     include_once $file;
 }
 
@@ -15,10 +16,10 @@ if (defined('BASE_PATH')) {
 
 unset($file);
 
-include_once __DIR__ . '/libraries/simple_html_dom.php';
+include_once SYS_PATH . '/libraries/simple_html_dom.php';
 
-$dependencies = require_once __DIR__ . '/config/dependencies.php';
-$events = require_once __DIR__ . '/config/events.php';
+$dependencies = require_once SYS_PATH . '/config/dependencies.php';
+$events = require_once SYS_PATH . '/config/events.php';
 $dependencies();
 $events();
 

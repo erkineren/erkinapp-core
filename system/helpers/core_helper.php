@@ -137,7 +137,7 @@ namespace ErkinApp\Helpers {
         }
 
 
-        $app->setCurrentContoller($classname);
+        $app->setCurrentController($classname);
         $app->setCurrentMethod($method);
 
         $response = $app->handle($request);

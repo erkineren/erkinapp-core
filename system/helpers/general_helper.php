@@ -18,7 +18,7 @@ namespace ErkinApp\Helpers {
      */
     function getCurrentControllerPretty()
     {
-        $str = (implode(' ', array_map('ucfirst', explode('_', ErkinApp()->getCurrentContollerShortName()))));
+        $str = (implode(' ', array_map('ucfirst', explode('_', ErkinApp()->getCurrentControllerShortName()))));
         if (strtolower($str) == 'index') return '';
         return $str;
     }

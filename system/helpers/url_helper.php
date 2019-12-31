@@ -101,6 +101,6 @@ namespace ErkinApp\Helpers {
      */
     function isCurrentControllerPath($controllerPath)
     {
-        return ErkinApp::getInstance()->getCurrentContollerPath() == strtolower($controllerPath);
+        return ErkinApp::getInstance()->getCurrentControllerPath() == strtolower($controllerPath);
     }
 }
