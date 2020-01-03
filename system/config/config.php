@@ -1,6 +1,6 @@
 <?php
 
-$customConfig = include APP_PATH . '/config/config.php';
+$customConfig = include BASE_PATH . '/config/config.php';
 
 return array_replace_recursive([
     'db' =>
@@ -17,4 +17,6 @@ return array_replace_recursive([
         'display_errors' => 0,
         'date.timezone' => 'Europe/Istanbul',
     ],
+    'theme' => 'default',
+    'language' => 'turkish',
 ], $customConfig);

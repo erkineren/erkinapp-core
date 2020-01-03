@@ -58,7 +58,10 @@ namespace ErkinApp\Helpers {
         // Our framework is being handling itself
         $app = ErkinApp();
         $request = $app->Request();
-        require_once APP_PATH . '/config/events.php';
+
+        if (file_exists(BASE_PATH . '/config/events.php')) {
+            include_once BASE_PATH . '/config/events.php';
+        }
 
 
         $app->Dispatcher()->dispatch(new RoutingEvent($request), Events::ROUTING);
@@ -69,7 +72,8 @@ namespace ErkinApp\Helpers {
         if (count($paths) < 2 && !$app->Routes()->get($request->getPathInfo())) {
             (new Response())
                 ->setStatusCode(Response::HTTP_BAD_REQUEST)
-                ->setContent("Route error")->send();
+                ->setContent("Route error")
+                ->send();
             die;
         }
 
@@ -102,18 +106,10 @@ namespace ErkinApp\Helpers {
 
         $classname = 'Application\\Controller\\' . $area . '\\' . $controller;
 
-
-//    $compiled_routes = [];
         $matched = false;
         foreach ($app->Routes()->all() as $name => $route) {
             if ($matched = preg_match($route->compile()->getRegex(), $request->getPathInfo())) break;
         }
-
-//    $app->map($request->getPathInfo(),
-//        [
-//            $classname,
-//            $method
-//        ]);
 
         if (!$matched) {
             if (!class_exists($classname)) {
@@ -142,8 +138,6 @@ namespace ErkinApp\Helpers {
 
         $response = $app->handle($request);
         $response->send();
-
-
     }
 
     /**
@@ -180,31 +174,7 @@ namespace ErkinApp\Helpers {
      */
     function getView($__filename, $__data = [], $includeParts = false)
     {
-        $__filename = ltrim($__filename, '/');
-
-        $viewfile = APP_PATH . "/View/";
-        if (!s($__filename)->startsWithAny(['Frontend', 'Backend', 'Api'])) {
-            $viewfile .= ErkinApp()->getCurrentArea();
-        }
-        $viewfile .= "/$__filename.php";
-
-        if (!file_exists($viewfile)) return false;
-
-
-        if (is_array($__data))
-            extract($__data);
-
-        ob_start();
-
-        if ($includeParts && file_exists(APP_PATH . '/View/' . ErkinApp()->getCurrentArea() . '/_parts/head.php'))
-            include APP_PATH . '/View/' . ErkinApp()->getCurrentArea() . '/_parts/head.php';
-
-        include $viewfile;
-
-        if ($includeParts && file_exists(APP_PATH . '/View/' . ErkinApp()->getCurrentArea() . '/_parts/end.php'))
-            include APP_PATH . '/View/' . ErkinApp()->getCurrentArea() . '/_parts/end.php';
-
-        return ob_get_clean();
+        return ErkinApp()->getView($__filename, $__data, $includeParts);
     }
 
     /**
@@ -218,5 +188,15 @@ namespace ErkinApp\Helpers {
 
         include_once $filename;
         return true;
+    }
+
+
+    function loadConfig()
+    {
+        $configFilePath = SYS_PATH . '/config/config.php';
+        if (!file_exists($configFilePath))
+            throw new ErkinAppException("Config file not found");
+
+        $config = include $configFilePath;
     }
 }

@@ -8,13 +8,14 @@ use ArrayIterator;
 use Countable;
 use IteratorAggregate;
 use JsonSerializable;
+use RecursiveArrayIterator;
+use RecursiveIteratorIterator;
 
 /**
- * Class ArrayAndObjectAccess
+ * Class DotNotationParameters
  * @package ErkinApp\Components
- * @author  Riku Särkinen <riku@adbar.io>
  */
-class ArrayAndObjectAccess implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
+class DotNotationParameters implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
 {
     /**
      * The stored items
@@ -40,7 +41,8 @@ class ArrayAndObjectAccess implements ArrayAccess, Countable, IteratorAggregate,
      * @access public
      * @return
      */
-    public function &__get ($key) {
+    public function &__get($key)
+    {
         return $this->data[$key];
     }
 
@@ -51,7 +53,8 @@ class ArrayAndObjectAccess implements ArrayAccess, Countable, IteratorAggregate,
      * @param mixed  The value to set
      * @access public
      */
-    public function __set($key,$value) {
+    public function __set($key, $value)
+    {
         $this->data[$key] = $value;
     }
 
@@ -63,7 +66,8 @@ class ArrayAndObjectAccess implements ArrayAccess, Countable, IteratorAggregate,
      * @return boolean
      * @abstracting ArrayAccess
      */
-    public function __isset ($key) {
+    public function __isset($key)
+    {
         return isset($this->data[$key]);
     }
 
@@ -73,7 +77,8 @@ class ArrayAndObjectAccess implements ArrayAccess, Countable, IteratorAggregate,
      * @param string The key to unset
      * @access public
      */
-    public function __unset($key) {
+    public function __unset($key)
+    {
         unset($this->data[$key]);
     }
 
@@ -579,4 +584,24 @@ class ArrayAndObjectAccess implements ArrayAccess, Countable, IteratorAggregate,
     {
         return $this->items;
     }
+
+    /**
+     * @param string $appendKey
+     * @return array
+     */
+    public function getAsDotNotation($appendKey = '')
+    {
+        $recursiveIteratorIterator = new RecursiveIteratorIterator(new RecursiveArrayIterator($this->items));
+        $result = [];
+        foreach ($recursiveIteratorIterator as $leafValue) {
+            $keys = array();
+            foreach (range(0, $recursiveIteratorIterator->getDepth()) as $depth) {
+                $keys[] = $recursiveIteratorIterator->getSubIterator($depth)->key();
+            }
+
+            $result[$appendKey . join('.', $keys)] = $leafValue;
+        }
+        return $result;
+    }
+
 }

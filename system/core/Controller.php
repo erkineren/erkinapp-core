@@ -29,6 +29,7 @@ use function ErkinApp\Helpers\getClassShortName;
  * @property Query $db
  * @property Container $container
  * @property Logger $logger
+ * @property Config $config
  */
 abstract class Controller
 {
@@ -84,6 +85,7 @@ abstract class Controller
             $__data = $__view;
             $__view = '';
         }
+        $viewPath = VIEW_PATH . '/' . ErkinApp()->Config()->get('theme') . '/' . ErkinApp()->getCurrentArea();
         /*
          * Eğer view parametresi boş gönderildi ise varsayılan view dosyasını bul
          *
@@ -100,29 +102,7 @@ abstract class Controller
                 $__view = $__called_controller_short_name . '/' . debug_backtrace()[2]['function'];
         }
 
-        $__filename = sprintf(APP_PATH . '/View/' . $this->area . '/%s.php', $__view);
-
-        if (!file_exists($__filename)) {
-            /** @var ViewFileNotFoundEvent $viewFileNotFoundEvent */
-            $viewFileNotFoundEvent = $this->dispatch(new ViewFileNotFoundEvent($this->request, $__filename), Events::VIEW_FILE_NOT_FOUND);
-            if ($viewFileNotFoundEvent->hasResponse()) return $viewFileNotFoundEvent->getResponse();
-            die;
-        }
-
-        if (is_array($__data))
-            extract($__data);
-        ob_start();
-
-        if ($includeParts && file_exists(APP_PATH . '/View/' . $this->area . '/_parts/head.php'))
-            include APP_PATH . '/View/' . $this->area . '/_parts/head.php';
-
-
-        include $__filename;
-
-        if ($includeParts && file_exists(APP_PATH . '/View/' . $this->area . '/_parts/end.php'))
-            include APP_PATH . '/View/' . $this->area . '/_parts/end.php';
-
-        return new Response(ob_get_clean());
+        return ErkinApp()->renderView($__view, $__data, $includeParts);
     }
 
     public function dispatch($event, $eventName = null)
@@ -133,11 +113,11 @@ abstract class Controller
     public function renderViews(array $views, $includeParts = true)
     {
 
-        if ($includeParts && file_exists(APP_PATH . '/View/' . $this->area . '/_parts/head.php'))
-            include APP_PATH . '/View/' . $this->area . '/_parts/head.php';
+        if ($includeParts && file_exists(VIEW_PATH . '/' . $this->area . '/_includes/head.php'))
+            include VIEW_PATH . '/' . $this->area . '/_includes/head.php';
 
         foreach ($views as $__view => $__data) {
-            $__filename = sprintf(APP_PATH . '/View/' . $this->area . '/%s.php', $__view);
+            $__filename = sprintf(VIEW_PATH . '/' . $this->area . '/%s.php', $__view);
 
             if (!file_exists($__filename)) {
                 /** @var ViewFileNotFoundEvent $viewFileNotFoundEvent */
@@ -154,8 +134,8 @@ abstract class Controller
         }
 
 
-        if ($includeParts && file_exists(APP_PATH . '/View/' . $this->area . '/_parts/end.php'))
-            include APP_PATH . '/View/' . $this->area . '/_parts/end.php';
+        if ($includeParts && file_exists(VIEW_PATH . '/' . $this->area . '/_includes/end.php'))
+            include VIEW_PATH . '/' . $this->area . '/_includes/end.php';
 
         return new Response(ob_get_clean());
     }

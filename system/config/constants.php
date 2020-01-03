@@ -1,5 +1,7 @@
 <?php
 
+if (!defined('VIEW_PATH'))
+    define('VIEW_PATH', realpath(BASE_PATH . '/themes'));
 
 /**
  * Default Route Controllers

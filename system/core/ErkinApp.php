@@ -7,14 +7,18 @@ use ArgumentCountError;
 use Closure;
 use DateTime;
 use ErkinApp\Components\Config;
+use ErkinApp\Components\Localization;
 use ErkinApp\Events\ActionNotFoundEvent;
 use ErkinApp\Events\ControllerActionEvent;
 use ErkinApp\Events\ErrorEvent;
 use ErkinApp\Events\Events;
 use ErkinApp\Events\RequestEvent;
 use ErkinApp\Events\ResponseEvent;
+use ErkinApp\Events\ViewFileNotFoundEvent;
 use ErkinApp\Exceptions\ErkinAppException;
+use ErkinApp\Exceptions\ViewFileNotFoundException;
 use Exception;
+use Monolog\Logger;
 use PDO;
 use ReflectionMethod;
 use Symfony\Component\EventDispatcher\Event;
@@ -23,7 +27,6 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\Routing\Exception\ResourceNotFoundException;
@@ -32,8 +35,6 @@ use Symfony\Component\Routing\RequestContext;
 use Symfony\Component\Routing\Route;
 use Symfony\Component\Routing\RouteCollection;
 use function ErkinApp\Helpers\getClassShortName;
-use function ErkinApp\Helpers\loadDefaultLanguage;
-use function ErkinApp\Helpers\loadLanguage;
 
 class ErkinApp implements HttpKernelInterface
 {
@@ -44,34 +45,35 @@ class ErkinApp implements HttpKernelInterface
     private static $instance;
 
     /**
+     * @var Container
+     */
+    protected $container;
+
+    /**
      * @var RouteCollection
      */
     protected $routes;
 
     /**
-     * @var EventDispatcher
+     * @var string
      */
-    protected $dispatcher;
-
-    /**
-     * @var Request
-     */
-    protected $request;
-
-    /**
-     * @var Container
-     */
-    protected $container;
-
-
     protected $currentArea;
-    protected $currentController;
-    protected $currentMethod;
-    protected $currentMethodArgs;
-    protected $languages;
 
-    /** @var Config */
-    private $config;
+    /**
+     * @var Controller
+     */
+    protected $currentController;
+
+    /**
+     * @var string
+     */
+    protected $currentMethod;
+
+    /**
+     * @var array
+     */
+    protected $currentMethodArgs;
+
 
     /**
      * ErkinApp constructor.
@@ -81,19 +83,6 @@ class ErkinApp implements HttpKernelInterface
     {
         $this->container = new Container();
         $this->routes = new RouteCollection();
-        $this->dispatcher = new EventDispatcher();
-        $session = new Session();
-
-        $this->config = $this->loadConfig();
-        $this->addConfigDotNotationToContainer();
-
-        $this->request = Request::createFromGlobals();
-        $this->request->setSession($session);
-
-        if (defined('DEFAULT_LANGUAGE')) {
-            $this->languages[DEFAULT_LANGUAGE] = loadDefaultLanguage();
-        }
-
     }
 
     /**
@@ -107,11 +96,21 @@ class ErkinApp implements HttpKernelInterface
     }
 
     /**
-     * @return ParameterBag
+     * @return Container
      */
-    public function RequestGet()
+    public function Container()
     {
-        return $this->Request()->query;
+        return $this->container;
+    }
+
+    /**
+     * @param $name
+     * @return bool|Model|Model[]|mixed|Container|EventDispatcher|ParameterBag|Request|SessionInterface|null
+     * @throws Exception
+     */
+    public function Get($name)
+    {
+        return $this->Container()->get($name);
     }
 
     /**
@@ -119,10 +118,15 @@ class ErkinApp implements HttpKernelInterface
      */
     public function Request()
     {
-        if ($this->request == null) {
-            $this->request = Request::createFromGlobals();
-        }
-        return $this->request;
+        return $this->Get(Request::class);
+    }
+
+    /**
+     * @return ParameterBag
+     */
+    public function RequestGet()
+    {
+        return $this->Request()->query;
     }
 
     /**
@@ -133,27 +137,13 @@ class ErkinApp implements HttpKernelInterface
         return $this->Request()->request;
     }
 
-    private function getUserInfo($user, $key = '')
-    {
-        if (is_array($user) && $key) {
-            if (isset($user[$key])) return $user[$key];
-            return false;
-        } elseif (is_object($user) && $key) {
-            if (isset($user->$key)) return $user->$key;
-            return false;
-        }
-        if (!$user) return false;
-
-        return $user;
-    }
-
     /**
      * @param string $key
      * @return bool|mixed
      */
     public function UserFrontend($key = '')
     {
-        return $this->getUserInfo($this->request->getSession()->get(SESSION_FRONTEND_AUTH), $key);
+        return $this->getUserInfo($this->Session()->get(SESSION_FRONTEND_AUTH), $key);
     }
 
     /**
@@ -162,7 +152,7 @@ class ErkinApp implements HttpKernelInterface
      */
     public function UserBackend($key = '')
     {
-        return $this->getUserInfo($this->request->getSession()->get(SESSION_BACKEND_AUTH), $key);
+        return $this->getUserInfo($this->Session()->get(SESSION_BACKEND_AUTH), $key);
     }
 
     /**
@@ -171,27 +161,7 @@ class ErkinApp implements HttpKernelInterface
      */
     public function UserApi($key = '')
     {
-        return $this->getUserInfo($this->request->getSession()->get(SESSION_API_AUTH), $key);
-    }
-
-    /**
-     * @param null $key
-     * @param null $lang
-     * @return bool
-     */
-    public function Language($key = null, $lang = null)
-    {
-        if ($lang === null)
-            if (defined('DEFAULT_LANGUAGE')) $lang = DEFAULT_LANGUAGE;
-            else return false;
-
-        if (!isset($this->languages[$lang]))
-            $this->languages[$lang] = loadLanguage($lang);
-
-        if ($key)
-            return isset($this->languages[$lang][$key]) ? $this->languages[$lang][$key] : false;
-        else
-            return $this->languages[$lang];
+        return $this->getUserInfo($this->Session()->get(SESSION_API_AUTH), $key);
     }
 
     /**
@@ -203,43 +173,28 @@ class ErkinApp implements HttpKernelInterface
     }
 
     /**
-     * @return bool|Container|Model|Model[]|mixed|EventDispatcher|ParameterBag|Request|SessionInterface|null
+     * @return Logger
      * @throws Exception
      */
     public function Logger()
     {
-        return $this->Get('logger');
+        return $this->Get(Logger::class);
     }
 
     /**
-     * @param $name
-     * @return bool|Model|Model[]|mixed|Container|EventDispatcher|ParameterBag|Request|SessionInterface|null
-     * @throws Exception
+     * @return Config
      */
-    public function Get($name)
+    public function Config()
     {
-        switch ($name) {
-            case 'sessions':
-                return $this->Session();
-            case 'cookies':
-                return $this->Request()->cookies;
-            case 'request':
-                return $this->Request();
-            case 'dispatcher':
-                return $this->Dispatcher();
-            case 'area':
-                return $this->getCurrentArea();
-            case 'db':
-                return $this->DB('default');
-            case 'container':
-                return $this->Container();
-        }
+        return $this->Get(Config::class);
+    }
 
-        if (!$this->container->offsetExists($name) && class_exists($name)) {
-            $this->container->offsetSet($name, new $name());
-        }
-
-        return $this->Container()->get($name);
+    /**
+     * @return Localization
+     */
+    public function Localization()
+    {
+        return $this->Get(Localization::class);
     }
 
     /**
@@ -247,7 +202,15 @@ class ErkinApp implements HttpKernelInterface
      */
     public function Session()
     {
-        return $this->request->getSession();
+        return $this->Request()->getSession();
+    }
+
+    /**
+     * @return ParameterBag
+     */
+    public function Cookies()
+    {
+        return $this->Request()->cookies;
     }
 
     /**
@@ -255,7 +218,7 @@ class ErkinApp implements HttpKernelInterface
      */
     public function Dispatcher()
     {
-        return $this->dispatcher;
+        return $this->Get(EventDispatcher::class);
     }
 
     /**
@@ -271,28 +234,49 @@ class ErkinApp implements HttpKernelInterface
     }
 
     /**
-     * @return mixed
-     * @throws ErkinAppException
+     * @param $dbKey
+     * @return PDO|null
+     * @throws Exception
      */
-    private function loadConfig()
+    public function DB($dbKey)
     {
-        $configFilePath = SYS_PATH . '/config/config.php';
-        if (!file_exists($configFilePath))
-            throw new ErkinAppException("Config file not found");
+        $id = "db.$dbKey";
+        if ($dbKey == 'default') $id = 'db';
+        if (!$this->container->offsetGet($id)) {
+            $dsn = $this->Config()->get('db.dsn');
+            $host = $this->Config()->get('db.host');
+            $port = $this->Config()->get('db.port');
+            $username = $this->Config()->get('db.username');
+            $password = $this->Config()->get('db.password');
+            $dbname = $this->Config()->get('db.dbname');
 
-        $config = include $configFilePath;
+            if (!$dsn) {
+                $dsn = "mysql:dbname=$dbname;host=$host;port=$port;";
+            }
 
-        $this->container->offsetSet('config', $config);
+            $this->container->offsetSet($id, $this->loadPDO($dsn, $username, $password));
+        }
 
-        return new Config($config);
+        return $this->container->offsetGet($id);
     }
 
-    private function addConfigDotNotationToContainer()
+    /**
+     * @param $user
+     * @param string $key
+     * @return bool|mixed
+     */
+    private function getUserInfo($user, $key = '')
     {
-        $configItems = $this->config->getAsDotNotation('config.');
-        foreach ($configItems as $key => $value) {
-            $this->container->offsetSet($key, $value);
+        if (is_array($user) && $key) {
+            if (isset($user[$key])) return $user[$key];
+            return false;
+        } elseif (is_object($user) && $key) {
+            if (isset($user->$key)) return $user->$key;
+            return false;
         }
+        if (!$user) return false;
+
+        return $user;
     }
 
     /**
@@ -328,41 +312,6 @@ class ErkinApp implements HttpKernelInterface
     }
 
     /**
-     * @param $dbKey
-     * @return PDO|null
-     * @throws Exception
-     */
-    public function DB($dbKey)
-    {
-        $id = "db.$dbKey";
-        if ($dbKey == 'default') $id = 'db';
-        if (!$this->container->offsetGet($id)) {
-            $dsn = $this->config->get('db.dsn');
-            $host = $this->config->get('db.host');
-            $port = $this->config->get('db.port');
-            $username = $this->config->get('db.username');
-            $password = $this->config->get('db.password');
-            $dbname = $this->config->get('db.dbname');
-
-            if (!$dsn) {
-                $dsn = "mysql:dbname=$dbname;host=$host;port=$port;";
-            }
-
-            $this->container->offsetSet($id, $this->loadPDO($dsn, $username, $password));
-        }
-
-        return $this->container->offsetGet($id);
-    }
-
-    /**
-     * @return Container
-     */
-    public function Container()
-    {
-        return $this->container;
-    }
-
-    /**
      * @param Request $request
      * @param int $type
      * @param bool $catch
@@ -371,20 +320,19 @@ class ErkinApp implements HttpKernelInterface
      */
     public function handle(Request $request, $type = HttpKernelInterface::MASTER_REQUEST, $catch = true)
     {
-
-        $this->request = $request;
+//        $this->Container()->offsetSet(Request::class, $request);
 
         // create a context using the current request
         $context = new RequestContext();
-        $context->fromRequest($this->request);
+        $context->fromRequest($request);
 
         $matcher = new UrlMatcher($this->routes, $context);
 
         try {
-            $attributes = $matcher->match($this->request->getPathInfo());
+            $attributes = $matcher->match($request->getPathInfo());
 
             /** @var RequestEvent $requestEvent */
-            $requestEvent = $this->dispatcher->dispatch(new RequestEvent($this->request), Events::REQUEST);
+            $requestEvent = $this->Dispatcher()->dispatch(new RequestEvent($request), Events::REQUEST);
 
             $controller = $attributes['controller'];
 
@@ -408,7 +356,7 @@ class ErkinApp implements HttpKernelInterface
                 $method = isset($controller[1]) ? $controller[1] : 'index';
 
                 if (!method_exists($ctrl, $method)) {
-                    $actionNotFoundEvent = $this->dispatcher->dispatch(new ActionNotFoundEvent($request), Events::ACTION_NOT_FOUND);
+                    $actionNotFoundEvent = $this->Dispatcher()->dispatch(new ActionNotFoundEvent($request), Events::ACTION_NOT_FOUND);
                     if ($actionNotFoundEvent->hasResponse()) {
                         return $actionNotFoundEvent->getResponse();
                     } else {
@@ -427,9 +375,9 @@ class ErkinApp implements HttpKernelInterface
                  */
                 if (strpos(strtolower($attributes['_route']), strtolower($ctrl_method_path)) !== false) {
 
-                    if (strpos(strtolower($this->request->getPathInfo()), '/frontend') === 0 ||
-                        strpos(strtolower($this->request->getPathInfo()), '/' . BACKEND_AREA_NAME) === 0 ||
-                        strpos(strtolower($this->request->getPathInfo()), '/' . API_AREA_NAME) === 0) {
+                    if (strpos(strtolower($request->getPathInfo()), '/frontend') === 0 ||
+                        strpos(strtolower($request->getPathInfo()), '/' . BACKEND_AREA_NAME) === 0 ||
+                        strpos(strtolower($request->getPathInfo()), '/' . API_AREA_NAME) === 0) {
                         $method_parameters = array_slice(explode('/', $attributes['_route']), 4);
                     } else {
                         $method_parameters = array_slice(explode('/', $attributes['_route']), 3);
@@ -458,8 +406,8 @@ class ErkinApp implements HttpKernelInterface
 
                 $controllerActionEventName = implode('_', explode("\\", get_class($ctrl))) . '::' . $method;
 
-                $this->dispatcher->dispatch(new ControllerActionEvent($ctrl, $method, $method_parameters, $request), 'Application_Controller_' . $this->getCurrentArea() . '::before');
-                $this->dispatcher->dispatch(new ControllerActionEvent($ctrl, $method, $method_parameters, $request), $controllerActionEventName . '::before');
+                $this->Dispatcher()->dispatch(new ControllerActionEvent($ctrl, $method, $method_parameters, $request), 'Application_Controller_' . $this->getCurrentArea() . '::before');
+                $this->Dispatcher()->dispatch(new ControllerActionEvent($ctrl, $method, $method_parameters, $request), $controllerActionEventName . '::before');
 
                 $this->setCurrentController($ctrl);
                 $this->setCurrentMethod($method);
@@ -481,8 +429,8 @@ class ErkinApp implements HttpKernelInterface
                 }
 
 
-                $this->dispatcher->dispatch(new ControllerActionEvent($ctrl, $method, $method_parameters, $request, $response), 'Application_Controller_' . $this->currentArea . '::after');
-                $this->dispatcher->dispatch(new ControllerActionEvent($ctrl, $method, $method_parameters, $request, $response), $controllerActionEventName . '::after');
+                $this->Dispatcher()->dispatch(new ControllerActionEvent($ctrl, $method, $method_parameters, $request, $response), 'Application_Controller_' . $this->currentArea . '::after');
+                $this->Dispatcher()->dispatch(new ControllerActionEvent($ctrl, $method, $method_parameters, $request, $response), $controllerActionEventName . '::after');
 
 
             }
@@ -490,28 +438,28 @@ class ErkinApp implements HttpKernelInterface
         } catch (ResourceNotFoundException $e1) {
 
 //            $response = new Response('An error occurred ResourceNotFoundException: ' . $e1->getMessage(), Response::HTTP_NOT_FOUND);
-            $errorEvent = $this->dispatcher->dispatch(new ErrorEvent($request, $e1), Events::ERROR);
+            $errorEvent = $this->Dispatcher()->dispatch(new ErrorEvent($request, $e1), Events::ERROR);
             if ($errorEvent->hasResponse()) return $errorEvent->getResponse();
             else throw $e1;
 
         } catch (ArgumentCountError $e2) {
 //            throw $e2;
 //            $response = new Response('An error occurred ArgumentCountError: ' . $e2->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
-            $errorEvent = $this->dispatcher->dispatch(new ErrorEvent($request, $e2), Events::ERROR);
+            $errorEvent = $this->Dispatcher()->dispatch(new ErrorEvent($request, $e2), Events::ERROR);
             if ($errorEvent->hasResponse()) return $errorEvent->getResponse();
             else throw $e2;
 
         } catch (Exception $e3) {
 //            throw $e2;
 //            $response = new Response('An error occurred ' . get_class_short_name($e3) . ': ' . $e3->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
-            $errorEvent = $this->dispatcher->dispatch(new ErrorEvent($request, $e3), Events::ERROR);
+            $errorEvent = $this->Dispatcher()->dispatch(new ErrorEvent($request, $e3), Events::ERROR);
             if ($errorEvent->hasResponse()) return $errorEvent->getResponse();
             else throw $e3;
 
         }
 
 
-        $this->dispatcher->dispatch(new ResponseEvent($response, $this->request), Events::RESPONSE);
+        $this->Dispatcher()->dispatch(new ResponseEvent($response, $request), Events::RESPONSE);
 
         return $response;
     }
@@ -561,7 +509,7 @@ class ErkinApp implements HttpKernelInterface
      */
     public function on($event, $callback)
     {
-        $this->dispatcher->addListener($event, $callback);
+        $this->Dispatcher()->addListener($event, $callback);
     }
 
     /**
@@ -570,7 +518,7 @@ class ErkinApp implements HttpKernelInterface
      */
     public function fire($event)
     {
-        return $this->dispatcher->dispatch($event);
+        return $this->Dispatcher()->dispatch($event);
     }
 
     /**
@@ -643,5 +591,54 @@ class ErkinApp implements HttpKernelInterface
         $this->currentController = $currentController;
     }
 
+    /**
+     * @param $__view
+     * @param array $__data
+     * @param bool $includeParts
+     * @return Response
+     */
+    function renderView($__view, $__data = [], $includeParts = false)
+    {
+        try {
+            return new Response($this->getView($__view, $__data, $includeParts));
+        } catch (ViewFileNotFoundException $viewFileNotFoundException) {
+            /** @var ViewFileNotFoundEvent $viewFileNotFoundEvent */
+            $viewFileNotFoundEvent = $this->dispatch(new ViewFileNotFoundEvent($this->Request(), $__filename), Events::VIEW_FILE_NOT_FOUND);
+            if ($viewFileNotFoundEvent->hasResponse())
+                return $viewFileNotFoundEvent->getResponse();
+        }
+
+    }
+
+    /**
+     * @param $__view
+     * @param array $__data
+     * @param bool $includeParts
+     * @return false|string
+     * @throws ViewFileNotFoundException
+     */
+    function getView($__view, $__data = [], $includeParts = false)
+    {
+        $viewPath = VIEW_PATH . '/' . $this->Config()->get('theme') . '/' . $this->getCurrentArea();
+        $__filename = sprintf($viewPath . '/%s.php', $__view);
+
+        if (!file_exists($__filename)) {
+            throw new ViewFileNotFoundException();
+        }
+
+        if (is_array($__data))
+            extract($__data);
+        ob_start();
+
+        if ($includeParts && file_exists($viewPath . '/_includes/head.php'))
+            include $viewPath . '/_includes/head.php';
+
+        include $__filename;
+
+        if ($includeParts && file_exists($viewPath . '/_includes/end.php'))
+            include $viewPath . '/_includes/end.php';
+
+        return ob_get_clean();
+    }
 
 }
