@@ -4,15 +4,13 @@ namespace ErkinApp;
 
 
 use Envms\FluentPDO\Query;
-use ErkinApp\Events\Events;
-use ErkinApp\Events\ViewFileNotFoundEvent;
+use ErkinApp\Components\Config;
 use Monolog\Logger;
 use Pimple\Container;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use function ErkinApp\Helpers\getClassShortName;
 
@@ -108,36 +106,6 @@ abstract class Controller
     public function dispatch($event, $eventName = null)
     {
         return $this->dispatcher->dispatch($event, $eventName);
-    }
-
-    public function renderViews(array $views, $includeParts = true)
-    {
-
-        if ($includeParts && file_exists(VIEW_PATH . '/' . $this->area . '/_includes/head.php'))
-            include VIEW_PATH . '/' . $this->area . '/_includes/head.php';
-
-        foreach ($views as $__view => $__data) {
-            $__filename = sprintf(VIEW_PATH . '/' . $this->area . '/%s.php', $__view);
-
-            if (!file_exists($__filename)) {
-                /** @var ViewFileNotFoundEvent $viewFileNotFoundEvent */
-                $viewFileNotFoundEvent = $this->dispatch(new ViewFileNotFoundEvent($this->request, $__filename), Events::VIEW_FILE_NOT_FOUND);
-                if ($viewFileNotFoundEvent->hasResponse()) return $viewFileNotFoundEvent->getResponse();
-                die;
-            }
-
-            if (is_array($__data))
-                extract($__data);
-            ob_start();
-
-            include $__filename;
-        }
-
-
-        if ($includeParts && file_exists(VIEW_PATH . '/' . $this->area . '/_includes/end.php'))
-            include VIEW_PATH . '/' . $this->area . '/_includes/end.php';
-
-        return new Response(ob_get_clean());
     }
 
     public function redirectMe()
