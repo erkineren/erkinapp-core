@@ -115,6 +115,7 @@ class ErkinApp implements HttpKernelInterface
 
     /**
      * @return Request
+     * @throws Exception
      */
     public function Request()
     {
@@ -123,6 +124,7 @@ class ErkinApp implements HttpKernelInterface
 
     /**
      * @return ParameterBag
+     * @throws Exception
      */
     public function RequestGet()
     {
@@ -131,6 +133,7 @@ class ErkinApp implements HttpKernelInterface
 
     /**
      * @return ParameterBag
+     * @throws Exception
      */
     public function RequestPost()
     {
@@ -183,6 +186,7 @@ class ErkinApp implements HttpKernelInterface
 
     /**
      * @return Config
+     * @throws Exception
      */
     public function Config()
     {
@@ -191,6 +195,7 @@ class ErkinApp implements HttpKernelInterface
 
     /**
      * @return Localization
+     * @throws Exception
      */
     public function Localization()
     {
@@ -199,6 +204,7 @@ class ErkinApp implements HttpKernelInterface
 
     /**
      * @return SessionInterface|null
+     * @throws Exception
      */
     public function Session()
     {
@@ -207,6 +213,7 @@ class ErkinApp implements HttpKernelInterface
 
     /**
      * @return ParameterBag
+     * @throws Exception
      */
     public function Cookies()
     {
@@ -215,6 +222,7 @@ class ErkinApp implements HttpKernelInterface
 
     /**
      * @return EventDispatcher
+     * @throws Exception
      */
     public function Dispatcher()
     {
@@ -506,6 +514,7 @@ class ErkinApp implements HttpKernelInterface
     /**
      * @param $event
      * @param $callback
+     * @throws Exception
      */
     public function on($event, $callback)
     {
@@ -515,6 +524,7 @@ class ErkinApp implements HttpKernelInterface
     /**
      * @param $event
      * @return mixed|object|Event|null
+     * @throws Exception
      */
     public function fire($event)
     {
@@ -596,6 +606,7 @@ class ErkinApp implements HttpKernelInterface
      * @param array $__data
      * @param bool $includeParts
      * @return Response
+     * @throws Exception
      */
     function renderView($__view, $__data = [], $includeParts = false)
     {
