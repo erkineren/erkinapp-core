@@ -3,8 +3,11 @@
 namespace ErkinApp\Template;
 
 
+use ErkinApp\Events\Events;
+use ErkinApp\Events\ViewFileNotFoundEvent;
 use ErkinApp\Exceptions\ViewFileNotFoundException;
 use Exception;
+use Symfony\Component\HttpFoundation\Response;
 
 abstract class Template implements ITemplate
 {
@@ -17,6 +20,7 @@ abstract class Template implements ITemplate
      * @var array
      */
     private $data;
+
 
     /**
      * @param string $filename
@@ -72,7 +76,7 @@ abstract class Template implements ITemplate
      */
     public function getTemplatePath(): string
     {
-        return realpath(VIEW_PATH . '/' . ErkinApp()->Config()->get('theme') . '/' . ErkinApp()->getCurrentArea());
+        return realpath(VIEW_PATH . '/' . ErkinApp()->Config()->get('theme.name') . '/' . ErkinApp()->getCurrentArea());
     }
 
     /**
@@ -91,5 +95,43 @@ abstract class Template implements ITemplate
         return $f;
     }
 
+    /**
+     * @param $filename
+     * @param array $data
+     * @return string
+     */
+    public function getCompiled($filename, $data = [])
+    {
+        return $this->prepare($filename, $data)->resolve();
+    }
+
+    /**
+     * @param $filename
+     * @param array $data
+     * @return Response
+     * @throws Exception
+     */
+    public function render($filename, $data = [])
+    {
+       return $this->renderCompiled($this->getCompiled($filename, $data));
+    }
+
+    /**
+     * @param string $compiledView
+     * @return Response
+     * @throws Exception
+     */
+    public function renderCompiled(string $compiledView)
+    {
+        try {
+            return new Response($compiledView);
+        } catch (ViewFileNotFoundException $viewFileNotFoundException) {
+            /** @var ViewFileNotFoundEvent $viewFileNotFoundEvent */
+            $viewFileNotFoundEvent = ErkinApp()->Dispatcher()->dispatch(new ViewFileNotFoundEvent(ErkinApp()->Request(), $filename), Events::VIEW_FILE_NOT_FOUND);
+            if ($viewFileNotFoundEvent->hasResponse())
+                return $viewFileNotFoundEvent->getResponse();
+        }
+        return new Response("renderView error", 500);
+    }
 
 }

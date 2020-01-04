@@ -2,6 +2,7 @@
 
 use ErkinApp\Components\Config;
 use ErkinApp\Components\Localization;
+use ErkinApp\Template\TemplateManager;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 use Pimple\Container;
@@ -13,7 +14,7 @@ return function () {
     $container = ErkinApp()->Container();
 
     $container[Config::class] = function (Container $c) {
-        return (new Config())->load();
+        return (new Config())->load();;
     };
 
     $container[Localization::class] = function (Container $c) {
@@ -32,8 +33,12 @@ return function () {
 
     $container[Logger::class] = function (Container $c) {
         $log = new Logger('app');
-        $log->pushHandler(new StreamHandler(BASE_PATH . '/var/logs/app.log', Logger::WARNING));
+        $log->pushHandler(new StreamHandler(LOGS_PATH . '/app.log', Logger::WARNING));
         return $log;
+    };
+
+    $container[TemplateManager::class] = function (Container $c) {
+        return (new TemplateManager())->loadTemplate();
     };
 
     $container['classmaps'] = function (Container $c) {

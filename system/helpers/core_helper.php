@@ -172,14 +172,15 @@ namespace ErkinApp\Helpers {
     }
 
     /**
-     * @param $__filename
-     * @param array $__data
+     * @param $filename
+     * @param array $data
      * @param bool $includeParts
      * @return bool|false|string
+     * @throws Exception
      */
-    function getView($__filename, $__data = [], $includeParts = false)
+    function getView($filename, $data = [], $includeParts = false)
     {
-        return ErkinApp()->getView($__filename, $__data, $includeParts);
+        return ErkinApp()->TemplateManager()->getCompiled($filename, $data, $includeParts);
     }
 
     /**

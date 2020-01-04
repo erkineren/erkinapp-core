@@ -8,7 +8,6 @@ namespace ErkinApp\Helpers {
      * @param $key
      * @param string $label
      * @return string
-     * @throws Exception
      */
     function ln($key, $label = '')
     {

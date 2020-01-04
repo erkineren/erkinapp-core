@@ -1,5 +1,7 @@
 <?php
 
+use ErkinApp\Template\Php\PhpTemplate;
+
 $customConfig = include BASE_PATH . '/config/config.php';
 
 return array_replace_recursive([
@@ -17,6 +19,12 @@ return array_replace_recursive([
         'display_errors' => 0,
         'date.timezone' => 'Europe/Istanbul',
     ],
-    'theme' => 'default',
+    'theme' => [
+        'name' => 'default',
+        'config' => [
+            'title' => 'Default Theme',
+            'template' => PhpTemplate::class,
+        ]
+    ],
     'language' => 'turkish',
 ], $customConfig);

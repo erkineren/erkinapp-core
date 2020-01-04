@@ -16,9 +16,9 @@ use ErkinApp\Events\ErrorEvent;
 use ErkinApp\Events\Events;
 use ErkinApp\Events\RequestEvent;
 use ErkinApp\Events\ResponseEvent;
-use ErkinApp\Events\ViewFileNotFoundEvent;
 use ErkinApp\Exceptions\ErkinAppException;
-use ErkinApp\Exceptions\ViewFileNotFoundException;
+use ErkinApp\Template\Template;
+use ErkinApp\Template\TemplateManager;
 use Exception;
 use Monolog\Logger;
 use PDO;
@@ -269,6 +269,15 @@ class ErkinApp implements HttpKernelInterface
         }
 
         return $this->container->offsetGet($id);
+    }
+
+    /**
+     * @return TemplateManager
+     * @throws Exception
+     */
+    public function TemplateManager()
+    {
+        return $this->Get(TemplateManager::class);
     }
 
     /**
@@ -606,40 +615,6 @@ class ErkinApp implements HttpKernelInterface
     public function setCurrentController($currentController)
     {
         $this->currentController = $currentController;
-    }
-
-    /**
-     * @param $__view
-     * @param array $__data
-     * @param bool $includeParts
-     * @return Response
-     * @throws Exception
-     */
-    function renderView($__view, $__data = [], $includeParts = false)
-    {
-        try {
-            return new Response($this->getView($__view, $__data, $includeParts));
-        } catch (ViewFileNotFoundException $viewFileNotFoundException) {
-            /** @var ViewFileNotFoundEvent $viewFileNotFoundEvent */
-            $viewFileNotFoundEvent = $this->Dispatcher()->dispatch(new ViewFileNotFoundEvent($this->Request(), $__view), Events::VIEW_FILE_NOT_FOUND);
-            if ($viewFileNotFoundEvent->hasResponse())
-                return $viewFileNotFoundEvent->getResponse();
-        }
-        return new Response("renderView error", 500);
-    }
-
-    /**
-     * @param $__view
-     * @param array $__data
-     * @param bool $includeParts
-     * @return false|string
-     */
-    function getView($__view, $__data = [], $includeParts = false)
-    {
-        return (new \ErkinApp\Template\Smarty\SmartyTemplate())
-            ->prepare($__view, $__data)
-//            ->setIncludePaths($includeParts)
-            ->resolve();
     }
 
 }

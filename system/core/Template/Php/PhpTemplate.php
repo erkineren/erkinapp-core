@@ -1,6 +1,6 @@
 <?php
 
-namespace ErkinApp\Template\PhpTemplate;
+namespace ErkinApp\Template\Php;
 
 use ErkinApp\Exceptions\ViewFileNotFoundException;
 use ErkinApp\Template\Template;
@@ -10,7 +10,7 @@ class PhpTemplate extends Template
     /**
      * @var bool
      */
-    private $includePaths = false;
+    private $includePaths = true;
 
     /**
      * @param bool $includePaths

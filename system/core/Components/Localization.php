@@ -21,11 +21,11 @@ class Localization extends DotNotationParameters
         return $lang;
     }
 
-    public function getTranslation($key, $lang = null)
+    public function getTranslation($key, $lang = null, $default = null)
     {
         $lang = $lang ?? ErkinApp()->Config()->get('language');
         $this->loadLanguage($lang);
-        return $this->get("$lang.$key") ?? $key;
+        return $this->get("$lang.$key") ?? $default ?? $key;
     }
 
     function getCurrentLangCode()
@@ -45,5 +45,12 @@ class Localization extends DotNotationParameters
     function getCurrentLanguage()
     {
         return ErkinApp()->Config()->get('language');
+    }
+
+    public function setCurrentLanguage($lang)
+    {
+        if (is_string($lang))
+            ErkinApp()->Config()->set('language', $lang);
+        return $this;
     }
 }

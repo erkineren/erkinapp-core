@@ -57,7 +57,6 @@ abstract class Controller
      * @param string $__view
      * @param array $__data
      * @return Response
-     * @throws Exception
      */
     public function renderViewPlain($__view = '', $__data = [])
     {
@@ -65,19 +64,17 @@ abstract class Controller
     }
 
     /**
-     * @param string $__view
-     * @param array $__data
+     * @param string $filename
+     * @param array $data
      * @param bool $includeParts
      * @return Response
-     * @throws Exception
      */
-    public function renderView($__view = '', $__data = [], $includeParts = true)
+    public function renderView($filename = '', $data = [], $includeParts = true)
     {
-        if (is_array($__view)) {
-            $__data = $__view;
-            $__view = '';
+        if (is_array($filename)) {
+            $data = $filename;
+            $filename = '';
         }
-        $viewPath = VIEW_PATH . '/' . ErkinApp()->Config()->get('theme') . '/' . ErkinApp()->getCurrentArea();
         /*
          * Eğer view parametresi boş gönderildi ise varsayılan view dosyasını bul
          *
@@ -87,14 +84,14 @@ abstract class Controller
          *
          * Örnek: anasayfa için index/index.php dosyasını bul
          */
-        if (!$__view) {
+        if (!$filename) {
             $__called_controller_short_name = strtolower(getClassShortName(get_class(debug_backtrace()[1]['object'])));
-            $__view = $__called_controller_short_name . '/' . debug_backtrace()[1]['function'];
-            if (strpos($__view, 'renderViewPlain') !== false)
-                $__view = $__called_controller_short_name . '/' . debug_backtrace()[2]['function'];
+            $filename = $__called_controller_short_name . '/' . debug_backtrace()[1]['function'];
+            if (strpos($filename, 'renderViewPlain') !== false)
+                $filename = $__called_controller_short_name . '/' . debug_backtrace()[2]['function'];
         }
 
-        return ErkinApp()->renderView($__view, $__data, $includeParts);
+        return ErkinApp()->TemplateManager()->render($filename, $data, $includeParts);
     }
 
     /**
