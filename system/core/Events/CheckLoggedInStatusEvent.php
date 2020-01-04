@@ -4,7 +4,7 @@
 namespace ErkinApp\Events;
 
 
-use ErkinApp\IAuthController;
+use ErkinApp\Controller\IAuthController;
 use Symfony\Contracts\EventDispatcher\Event;
 
 

@@ -26,6 +26,7 @@ class ViewFileNotFoundEvent extends Event
     /**
      * RequestEvent constructor.
      * @param Request $request
+     * @param string $filename
      */
     public function __construct(Request $request, string $filename)
     {

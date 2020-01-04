@@ -3,35 +3,35 @@
 namespace ErkinApp\Helpers {
 
     use ErkinApp\ErkinApp;
+    use Exception;
 
     /**
      * @param string $path
      * @return string
+     * @throws Exception
      */
     function siteUrl($path = '')
     {
         $request = ErkinApp::getInstance()->Request();
-        $url = $request->getSchemeAndHttpHost() . $request->getBasePath() . '/' . $path;
-
-        return $url;
+        return $request->getSchemeAndHttpHost() . $request->getBasePath() . '/' . $path;
     }
 
     /**
      * @param string $path
      * @return string
+     * @throws Exception
      */
     function backendUrl($path = '')
     {
         $request = ErkinApp::getInstance()->Request();
-        $url = $request->getSchemeAndHttpHost() . $request->getBasePath() . '/' . BACKEND_AREA_NAME . '/' . $path;
-
-        return $url;
+        return $request->getSchemeAndHttpHost() . $request->getBasePath() . '/' . BACKEND_AREA_NAME . '/' . $path;
     }
 
     /**
      * @param $path
      * @param bool $version
      * @return string
+     * @throws Exception
      */
     function assetUrl($path, $version = true)
     {
@@ -48,6 +48,7 @@ namespace ErkinApp\Helpers {
     /**
      * @param string $path_as_args
      * @return string
+     * @throws Exception
      */
     function selfMethodUrl($path_as_args = '')
     {
@@ -58,6 +59,7 @@ namespace ErkinApp\Helpers {
      * @param string $path
      * @param bool $rtrimslash
      * @return string
+     * @throws Exception
      */
     function uriString($path = '', $rtrimslash = true)
     {
@@ -74,6 +76,7 @@ namespace ErkinApp\Helpers {
     /**
      * @param $paths
      * @return bool
+     * @throws Exception
      */
     function isCurrentPath($paths)
     {

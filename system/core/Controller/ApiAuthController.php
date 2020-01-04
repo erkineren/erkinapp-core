@@ -1,7 +1,7 @@
 <?php
 
 
-namespace ErkinApp;
+namespace ErkinApp\Controller;
 
 
 use ErkinApp\Events\ApiBasicAuthEvent;
@@ -45,7 +45,6 @@ class ApiAuthController extends Controller implements IAuthController
         header('Content-Type: application/json');
 
         return AjaxResponse::Error('API user credentials are invalid.');
-        exit;
     }
 
 

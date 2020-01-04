@@ -1,7 +1,7 @@
 <?php
 
 
-namespace ErkinApp;
+namespace ErkinApp\Controller;
 
 
 use ErkinApp\Events\CheckLoggedInStatusEvent;

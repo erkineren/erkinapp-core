@@ -22,14 +22,15 @@ namespace ErkinApp\Helpers {
     use ErkinApp\Events\Events;
     use ErkinApp\Events\RoutingEvent;
     use ErkinApp\Exceptions\ErkinAppException;
+    use Exception;
     use Symfony\Component\HttpFoundation\Response;
     use Whoops\Handler\CallbackHandler;
     use Whoops\Handler\Handler;
     use Whoops\Run;
 
     /**
-     * @param null $basePath
      * @throws ErkinAppException
+     * @throws Exception
      */
     function handleApp()
     {
@@ -113,7 +114,7 @@ namespace ErkinApp\Helpers {
 
         if (!$matched) {
             if (!class_exists($classname)) {
-
+                /** @var ControllerNotFoundEvent $controllerNotFoundEvent */
                 $controllerNotFoundEvent = $app->Dispatcher()->dispatch(new ControllerNotFoundEvent($request), Events::CONTROLLER_NOT_FOUND);
                 if ($controllerNotFoundEvent->hasResponse()) {
                     $controllerNotFoundEvent->getResponse()->send();
@@ -143,6 +144,7 @@ namespace ErkinApp\Helpers {
     /**
      * @param string $key
      * @return bool|mixed
+     * @throws Exception
      */
     function getUserFrontend($key = '')
     {
@@ -152,6 +154,7 @@ namespace ErkinApp\Helpers {
     /**
      * @param string $key
      * @return bool|mixed
+     * @throws Exception
      */
     function getUserBackend($key = '')
     {
@@ -161,6 +164,7 @@ namespace ErkinApp\Helpers {
     /**
      * @param string $key
      * @return bool|mixed
+     * @throws Exception
      */
     function getUserApi($key = '')
     {
@@ -170,6 +174,7 @@ namespace ErkinApp\Helpers {
     /**
      * @param $__filename
      * @param array $__data
+     * @param bool $includeParts
      * @return bool|false|string
      */
     function getView($__filename, $__data = [], $includeParts = false)
@@ -190,7 +195,9 @@ namespace ErkinApp\Helpers {
         return true;
     }
 
-
+    /**
+     * @throws ErkinAppException
+     */
     function loadConfig()
     {
         $configFilePath = SYS_PATH . '/config/config.php';

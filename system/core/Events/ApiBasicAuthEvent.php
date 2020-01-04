@@ -19,6 +19,9 @@ class ApiBasicAuthEvent extends Event
 
     /**
      * ApiBasicAuthEvent constructor.
+     * @param $auth_user
+     * @param string $auth_pw
+     * @param string $auth_digest
      */
     public function __construct($auth_user, $auth_pw = '', $auth_digest = '')
     {
@@ -68,6 +71,7 @@ class ApiBasicAuthEvent extends Event
 
     /**
      * @param bool $isAuthenticated
+     * @throws \Exception
      */
     public function setAuthenticated($isAuthenticated)
     {

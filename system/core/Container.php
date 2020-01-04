@@ -9,6 +9,8 @@ use ErkinApp\Components\Localization;
 use ErkinApp\Exceptions\ErkinAppException;
 use Pimple\Container as PimpleContainer;
 use Psr\Container\ContainerInterface;
+use ReflectionClass;
+use ReflectionException;
 
 /**
  * Class Container
@@ -47,6 +49,21 @@ class Container extends PimpleContainer implements ContainerInterface
             throw new ErkinAppException(sprintf('Identifier "%s" is not defined in container.', $id));
         }
         return $this->offsetGet($id);
+    }
+
+    /**
+     * @inheritDoc
+     * @throws ErkinAppException
+     * @throws ReflectionException
+     */
+    public function maybeBorn($className, $args = [])
+    {
+        if (!class_exists($className))
+            throw new ErkinAppException(sprintf('Can not born. Class "%s" not exist.', $className));
+        if (!$this->offsetExists($className)) {
+            $this->offsetSet($className, (new ReflectionClass($className))->newInstanceArgs($args));
+        }
+        return $this->offsetGet($className);
     }
 
     /**

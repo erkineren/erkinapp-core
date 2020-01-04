@@ -28,6 +28,7 @@ class Action_hooks
      * @param mixed $name
      * @param mixed $function
      * @param mixed $priority
+     * @return bool
      */
     public function add_action($name, $function, $priority = 10)
     {
@@ -137,6 +138,7 @@ class Action_hooks
      * @param mixed $name
      * @param mixed $function
      * @param mixed $priority
+     * @return bool
      */
     public function remove_action($name, $function, $priority = 10)
     {
@@ -174,6 +176,7 @@ class Action_hooks
      *
      * @param mixed $hook
      * @param mixed $priority
+     * @return bool
      */
     public function has_run($action, $priority = 10)
     {
@@ -190,6 +193,7 @@ class Action_hooks
      * Does a particular action hook even exist?
      *
      * @param mixed $name
+     * @return bool
      */
     public function action_exists($name)
     {
@@ -207,6 +211,7 @@ class Action_hooks
  * @param mixed $name
  * @param mixed $function
  * @param mixed $priority
+ * @return bool
  */
 function add_action($name, $function, $priority = 10)
 {
@@ -231,6 +236,7 @@ function do_action($name, $arguments = '')
  * @param mixed $name
  * @param mixed $function
  * @param mixed $priority
+ * @return bool
  */
 function remove_action($name, $function, $priority = 10)
 {
@@ -241,6 +247,7 @@ function remove_action($name, $function, $priority = 10)
  * Check if an action exists
  *
  * @param mixed $name
+ * @return bool
  */
 function action_exists($name)
 {

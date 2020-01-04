@@ -38,8 +38,8 @@ class DotNotationParameters implements ArrayAccess, Countable, IteratorAggregate
      * Get a data by key
      *
      * @param string The key data to retrieve
-     * @access public
      * @return
+     * @access public
      */
     public function &__get($key)
     {

@@ -4,6 +4,11 @@
 namespace ErkinApp;
 
 
+use Envms\FluentPDO\Exception;
+use Envms\FluentPDO\Queries\Delete;
+use Envms\FluentPDO\Queries\Insert;
+use Envms\FluentPDO\Queries\Select;
+use Envms\FluentPDO\Queries\Update;
 use Envms\FluentPDO\Query;
 
 
@@ -18,7 +23,7 @@ abstract class Model
 
     /**
      * Model constructor.
-     * @param $db
+     * @throws \Exception
      */
     function __construct()
     {
@@ -58,8 +63,8 @@ abstract class Model
      * @param $condition
      * @param array $parameters
      * @param string $separator
-     * @return \Envms\FluentPDO\Queries\Select
-     * @throws \Envms\FluentPDO\Exception
+     * @return Select
+     * @throws Exception
      */
     function where($condition, $parameters = [], $separator = 'AND')
     {
@@ -68,8 +73,8 @@ abstract class Model
 
     /**
      * @param $primary_key
-     * @return \Envms\FluentPDO\Queries\Delete
-     * @throws \Envms\FluentPDO\Exception
+     * @return Delete
+     * @throws Exception
      */
     function delete($primary_key = null)
     {
@@ -82,7 +87,7 @@ abstract class Model
      *
      * @param array $values
      * @return bool
-     * @throws \Envms\FluentPDO\Exception
+     * @throws Exception
      */
     function insertTransaction($values = [])
     {
@@ -103,8 +108,8 @@ abstract class Model
 
     /**
      * @param array $values
-     * @return \Envms\FluentPDO\Queries\Insert
-     * @throws \Envms\FluentPDO\Exception
+     * @return Insert
+     * @throws Exception
      */
     function insert($values = [])
     {
@@ -133,7 +138,7 @@ abstract class Model
      *
      * @param array $values
      * @return bool
-     * @throws \Envms\FluentPDO\Exception
+     * @throws Exception
      */
     function insertOrUpdateTransaction($values = [])
     {
@@ -146,8 +151,9 @@ abstract class Model
 
     /**
      * @param array $values
-     * @return \Envms\FluentPDO\Queries\Insert
-     * @throws \Envms\FluentPDO\Exception
+     * @param array $onDuplicateKeyUpdateValues
+     * @return Insert
+     * @throws Exception
      */
     function insertOrUpdate($values = [], $onDuplicateKeyUpdateValues = [])
     {
@@ -158,8 +164,8 @@ abstract class Model
     /**
      * @param array $set
      * @param null $primary_key
-     * @return \Envms\FluentPDO\Queries\Update
-     * @throws \Envms\FluentPDO\Exception
+     * @return Update
+     * @throws Exception
      */
     function update($set = [], $primary_key = null)
     {

@@ -4,7 +4,7 @@
 namespace ErkinApp\Events;
 
 
-use ErkinApp\Controller;
+use ErkinApp\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Contracts\EventDispatcher\Event;
@@ -33,9 +33,12 @@ class ControllerActionEvent extends Event
     public $response;
 
     /**
-     * ControllerEvent constructor.
+     * ControllerActionEvent constructor.
      * @param Controller $controller
-     * @param string $method
+     * @param $method
+     * @param $method_parameters
+     * @param Request $request
+     * @param Response|null $response
      */
     public function __construct(Controller $controller, $method, $method_parameters, Request &$request, Response &$response = null)
     {

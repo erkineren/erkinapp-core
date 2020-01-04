@@ -30,8 +30,7 @@ namespace ErkinApp\Helpers {
             '@<![\s\S]*?--[ \t\n\r]*>@'         // Strip multi-line comments
         );
 
-        $output = preg_replace($search, '', $input);
-        return $output;
+        return preg_replace($search, '', $input);
     }
 
     /**
@@ -51,7 +50,7 @@ namespace ErkinApp\Helpers {
             $input = cleanInput($input);
             $output = addslashes($input);
         }
-        return $output;
+        return $output ?? '';
     }
 
     /**

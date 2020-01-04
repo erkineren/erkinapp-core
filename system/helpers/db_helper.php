@@ -2,9 +2,17 @@
 
 namespace ErkinApp\Helpers {
 
+    use Envms\FluentPDO\Exception;
     use Envms\FluentPDO\Queries\Select;
-    use ErkinApp\Controller;
+    use ErkinApp\Controller\Controller;
 
+    /**
+     * @param Select $q
+     * @param Controller $controller
+     * @param callable|null $record_callback
+     * @return array
+     * @throws Exception
+     */
     function renderDatatableResult(Select $q, Controller $controller, Callable $record_callback = null)
     {
         $recordsTotal = $q->count();

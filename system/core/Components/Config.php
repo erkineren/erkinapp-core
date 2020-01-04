@@ -7,6 +7,10 @@ use ErkinApp\Exceptions\ErkinAppException;
 
 class Config extends DotNotationParameters
 {
+    /**
+     * @return $this
+     * @throws ErkinAppException
+     */
     public function load()
     {
         $configFilePath = SYS_PATH . '/config/config.php';

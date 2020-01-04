@@ -2,7 +2,14 @@
 
 namespace ErkinApp\Helpers {
 
+    use Exception;
 
+    /**
+     * @param $key
+     * @param string $label
+     * @return string
+     * @throws Exception
+     */
     function ln($key, $label = '')
     {
         $line = ErkinApp()->Localization()->getTranslation($key);
@@ -16,11 +23,19 @@ namespace ErkinApp\Helpers {
         return $_line;
     }
 
+    /**
+     * @return string|null
+     * @throws Exception
+     */
     function getCurrentLangCode()
     {
         return ErkinApp()->Localization()->getCurrentLangCode();
     }
 
+    /**
+     * @return mixed
+     * @throws Exception
+     */
     function getCurrentLanguage()
     {
         return ErkinApp()->Config()->get('language');

@@ -3,6 +3,12 @@
 if (!defined('VIEW_PATH'))
     define('VIEW_PATH', realpath(BASE_PATH . '/themes'));
 
+if (!defined('CACHE_PATH'))
+    define('CACHE_PATH', realpath(BASE_PATH . '/var/cache'));
+
+if (!defined('LOGS_PATH'))
+    define('LOGS_PATH', realpath(BASE_PATH . '/var/logs'));
+
 /**
  * Default Route Controllers
  *

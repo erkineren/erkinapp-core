@@ -2,13 +2,16 @@
 
 namespace ErkinApp\Helpers {
 
+    use Exception;
     use ReflectionClass;
+    use ReflectionException;
+    use Symfony\Component\HttpFoundation\Session\Flash\FlashBag;
 
     function getClassShortName($class)
     {
         try {
             return (new ReflectionClass($class))->getShortName();
-        } catch (\ReflectionException $e) {
+        } catch (ReflectionException $e) {
             return '';
         }
     }
@@ -34,7 +37,8 @@ namespace ErkinApp\Helpers {
     }
 
     /**
-     * @return \Symfony\Component\HttpFoundation\Session\Flash\FlashBag
+     * @return FlashBag
+     * @throws Exception
      */
     function getFlashBag()
     {
@@ -44,6 +48,7 @@ namespace ErkinApp\Helpers {
     /**
      * @param $type
      * @param $message
+     * @throws Exception
      */
     function setAlert($type, $message)
     {

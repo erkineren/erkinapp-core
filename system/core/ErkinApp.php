@@ -8,6 +8,8 @@ use Closure;
 use DateTime;
 use ErkinApp\Components\Config;
 use ErkinApp\Components\Localization;
+use ErkinApp\Controller\Controller;
+use ErkinApp\Controller\IAuthController;
 use ErkinApp\Events\ActionNotFoundEvent;
 use ErkinApp\Events\ControllerActionEvent;
 use ErkinApp\Events\ErrorEvent;
@@ -21,7 +23,6 @@ use Exception;
 use Monolog\Logger;
 use PDO;
 use ReflectionMethod;
-use Symfony\Component\EventDispatcher\Event;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\ParameterBag;
@@ -34,11 +35,11 @@ use Symfony\Component\Routing\Matcher\UrlMatcher;
 use Symfony\Component\Routing\RequestContext;
 use Symfony\Component\Routing\Route;
 use Symfony\Component\Routing\RouteCollection;
+use Symfony\Contracts\EventDispatcher\Event;
 use function ErkinApp\Helpers\getClassShortName;
 
 class ErkinApp implements HttpKernelInterface
 {
-
     /**
      * @var ErkinApp
      */
@@ -77,7 +78,6 @@ class ErkinApp implements HttpKernelInterface
 
     /**
      * ErkinApp constructor.
-     * @throws ErkinAppException
      */
     private function __construct()
     {
@@ -87,7 +87,6 @@ class ErkinApp implements HttpKernelInterface
 
     /**
      * @return ErkinApp
-     * @throws ErkinAppException
      */
     public static function getInstance()
     {
@@ -143,6 +142,7 @@ class ErkinApp implements HttpKernelInterface
     /**
      * @param string $key
      * @return bool|mixed
+     * @throws Exception
      */
     public function UserFrontend($key = '')
     {
@@ -152,6 +152,7 @@ class ErkinApp implements HttpKernelInterface
     /**
      * @param string $key
      * @return bool|mixed
+     * @throws Exception
      */
     public function UserBackend($key = '')
     {
@@ -161,6 +162,7 @@ class ErkinApp implements HttpKernelInterface
     /**
      * @param string $key
      * @return bool|mixed
+     * @throws Exception
      */
     public function UserApi($key = '')
     {
@@ -233,12 +235,13 @@ class ErkinApp implements HttpKernelInterface
      * @param string $class
      * @return Model
      * @throws ErkinAppException
+     * @throws \ReflectionException
      */
     public function Models($class)
     {
         if (!class_exists($class))
             throw new ErkinAppException("Model class not found");
-        return $this->container->get($class);
+        return $this->Container()->maybeBorn($class);
     }
 
     /**
@@ -364,6 +367,7 @@ class ErkinApp implements HttpKernelInterface
                 $method = isset($controller[1]) ? $controller[1] : 'index';
 
                 if (!method_exists($ctrl, $method)) {
+                    /** @var ActionNotFoundEvent $actionNotFoundEvent */
                     $actionNotFoundEvent = $this->Dispatcher()->dispatch(new ActionNotFoundEvent($request), Events::ACTION_NOT_FOUND);
                     if ($actionNotFoundEvent->hasResponse()) {
                         return $actionNotFoundEvent->getResponse();
@@ -446,6 +450,7 @@ class ErkinApp implements HttpKernelInterface
         } catch (ResourceNotFoundException $e1) {
 
 //            $response = new Response('An error occurred ResourceNotFoundException: ' . $e1->getMessage(), Response::HTTP_NOT_FOUND);
+            /** @var ErrorEvent $errorEvent */
             $errorEvent = $this->Dispatcher()->dispatch(new ErrorEvent($request, $e1), Events::ERROR);
             if ($errorEvent->hasResponse()) return $errorEvent->getResponse();
             else throw $e1;
@@ -453,6 +458,7 @@ class ErkinApp implements HttpKernelInterface
         } catch (ArgumentCountError $e2) {
 //            throw $e2;
 //            $response = new Response('An error occurred ArgumentCountError: ' . $e2->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
+            /** @var ErrorEvent $errorEvent */
             $errorEvent = $this->Dispatcher()->dispatch(new ErrorEvent($request, $e2), Events::ERROR);
             if ($errorEvent->hasResponse()) return $errorEvent->getResponse();
             else throw $e2;
@@ -460,6 +466,7 @@ class ErkinApp implements HttpKernelInterface
         } catch (Exception $e3) {
 //            throw $e2;
 //            $response = new Response('An error occurred ' . get_class_short_name($e3) . ': ' . $e3->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
+            /** @var ErrorEvent $errorEvent */
             $errorEvent = $this->Dispatcher()->dispatch(new ErrorEvent($request, $e3), Events::ERROR);
             if ($errorEvent->hasResponse()) return $errorEvent->getResponse();
             else throw $e3;
@@ -614,11 +621,11 @@ class ErkinApp implements HttpKernelInterface
             return new Response($this->getView($__view, $__data, $includeParts));
         } catch (ViewFileNotFoundException $viewFileNotFoundException) {
             /** @var ViewFileNotFoundEvent $viewFileNotFoundEvent */
-            $viewFileNotFoundEvent = $this->dispatch(new ViewFileNotFoundEvent($this->Request(), $__filename), Events::VIEW_FILE_NOT_FOUND);
+            $viewFileNotFoundEvent = $this->Dispatcher()->dispatch(new ViewFileNotFoundEvent($this->Request(), $__view), Events::VIEW_FILE_NOT_FOUND);
             if ($viewFileNotFoundEvent->hasResponse())
                 return $viewFileNotFoundEvent->getResponse();
         }
-
+        return new Response("renderView error", 500);
     }
 
     /**
@@ -626,30 +633,13 @@ class ErkinApp implements HttpKernelInterface
      * @param array $__data
      * @param bool $includeParts
      * @return false|string
-     * @throws ViewFileNotFoundException
      */
     function getView($__view, $__data = [], $includeParts = false)
     {
-        $viewPath = VIEW_PATH . '/' . $this->Config()->get('theme') . '/' . $this->getCurrentArea();
-        $__filename = sprintf($viewPath . '/%s.php', $__view);
-
-        if (!file_exists($__filename)) {
-            throw new ViewFileNotFoundException();
-        }
-
-        if (is_array($__data))
-            extract($__data);
-        ob_start();
-
-        if ($includeParts && file_exists($viewPath . '/_includes/head.php'))
-            include $viewPath . '/_includes/head.php';
-
-        include $__filename;
-
-        if ($includeParts && file_exists($viewPath . '/_includes/end.php'))
-            include $viewPath . '/_includes/end.php';
-
-        return ob_get_clean();
+        return (new \ErkinApp\Template\Smarty\SmartyTemplate())
+            ->prepare($__view, $__data)
+//            ->setIncludePaths($includeParts)
+            ->resolve();
     }
 
 }

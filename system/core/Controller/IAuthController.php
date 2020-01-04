@@ -1,12 +1,11 @@
 <?php
 
 
-namespace ErkinApp;
+namespace ErkinApp\Controller;
 
 
 interface IAuthController
 {
-
     function isLoggedIn();
 
     function goToLogin();

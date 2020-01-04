@@ -4,8 +4,6 @@
 namespace ErkinApp\Components;
 
 
-use function ErkinApp\Helpers\getCurrentLanguage;
-
 class Localization extends DotNotationParameters
 {
     public function loadLanguage($lang, $reload = false)

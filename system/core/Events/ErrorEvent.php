@@ -6,6 +6,7 @@ namespace ErkinApp\Events;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Contracts\EventDispatcher\Event;
+use Throwable;
 
 class ErrorEvent extends Event
 {
@@ -20,15 +21,16 @@ class ErrorEvent extends Event
     protected $response;
 
     /**
-     * @var \Throwable
+     * @var Throwable
      */
     protected $throwable;
 
     /**
      * RequestEvent constructor.
      * @param Request $request
+     * @param Throwable|null $throwable
      */
-    public function __construct(Request $request, \Throwable $throwable = null)
+    public function __construct(Request $request, Throwable $throwable = null)
     {
 
         $this->request = $request;
@@ -59,17 +61,17 @@ class ErrorEvent extends Event
     }
 
     /**
-     * @return \Throwable
+     * @return Throwable
      */
-    public function getThrowable(): \Throwable
+    public function getThrowable(): Throwable
     {
         return $this->throwable;
     }
 
     /**
-     * @param \Throwable $throwable
+     * @param Throwable $throwable
      */
-    public function setThrowable(\Throwable $throwable): void
+    public function setThrowable(Throwable $throwable): void
     {
         $this->throwable = $throwable;
     }

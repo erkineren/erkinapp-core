@@ -1,40 +1,31 @@
 <?php
 
-namespace ErkinApp;
+namespace ErkinApp\Controller;
 
 
-use Envms\FluentPDO\Query;
-use ErkinApp\Components\Config;
-use Monolog\Logger;
-use Pimple\Container;
-use Symfony\Component\EventDispatcher\EventDispatcher;
-use Symfony\Component\HttpFoundation\ParameterBag;
+use ErkinApp\AppContainer;
+use ErkinApp\ErkinApp;
+use ErkinApp\Exceptions\ErkinAppException;
+use ErkinApp\Model;
+use Exception;
+use PDO;
+use ReflectionException;
 use Symfony\Component\HttpFoundation\RedirectResponse;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Session\SessionInterface;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Session\Flash\FlashBag;
+use Symfony\Contracts\EventDispatcher\Event;
 use function ErkinApp\Helpers\getClassShortName;
 
 /**
  * Class Controller
  * @package ErkinApp
- *
- * @property Request $request
- * @property EventDispatcher $dispatcher
- * @property SessionInterface $sessions
- * @property ParameterBag $cookies
- * @property Model[] $models
- * @property string $area
- * @property Query $db
- * @property Container $container
- * @property Logger $logger
- * @property Config $config
  */
 abstract class Controller
 {
+    use AppContainer;
 
     /**
      * BaseController constructor.
-     * @throws Exceptions\ErkinAppException
      */
     public function __construct()
     {
@@ -42,41 +33,44 @@ abstract class Controller
     }
 
     /**
-     * @param $name
-     * @return bool|\ErkinApp\Container|Model|Model[]|mixed|EventDispatcher|ParameterBag|Request|SessionInterface|null
-     * @throws \Exception
-     */
-    public function __get($name)
-    {
-        return ErkinApp()->Get($name);
-    }
-
-    /**
      * @param string $class
-     * @return bool|Model
-     * @throws Exceptions\ErkinAppException
+     * @return Model
+     * @throws ErkinAppException
+     * @throws ReflectionException
      */
-    public function getModel($class = '')
+    public function getModel($class)
     {
-        if (!$class) return $this->model;
         return ErkinApp()->Models($class);
     }
 
     /**
      * @param string $dbkey
-     * @return \PDO|null
-     * @throws \Exception
+     * @return PDO|null
+     * @throws Exception
      */
     public function getDb($dbkey = 'default')
     {
         return ErkinApp()->DB($dbkey);
     }
 
+    /**
+     * @param string $__view
+     * @param array $__data
+     * @return Response
+     * @throws Exception
+     */
     public function renderViewPlain($__view = '', $__data = [])
     {
         return $this->renderView($__view, $__data, false);
     }
 
+    /**
+     * @param string $__view
+     * @param array $__data
+     * @param bool $includeParts
+     * @return Response
+     * @throws Exception
+     */
     public function renderView($__view = '', $__data = [], $includeParts = true)
     {
         if (is_array($__view)) {
@@ -103,16 +97,30 @@ abstract class Controller
         return ErkinApp()->renderView($__view, $__data, $includeParts);
     }
 
+    /**
+     * @param $event
+     * @param null $eventName
+     * @return mixed|object|Event|null
+     * @throws Exception
+     */
     public function dispatch($event, $eventName = null)
     {
-        return $this->dispatcher->dispatch($event, $eventName);
+        return ErkinApp()->Dispatcher()->dispatch($event, $eventName);
     }
 
+    /**
+     * @return RedirectResponse
+     * @throws Exception
+     */
     public function redirectMe()
     {
-        return new RedirectResponse($this->request->getBasePath() . $this->request->getPathInfo());
+        return new RedirectResponse(ErkinApp()->Request()->getBasePath() . ErkinApp()->Request()->getPathInfo());
     }
 
+    /**
+     * @return RedirectResponse
+     * @throws Exception
+     */
     public function redirectReferrer()
     {
         if ($_SERVER['HTTP_REFERER'])
@@ -121,19 +129,34 @@ abstract class Controller
         return $this->redirect();
     }
 
+    /**
+     * @param string $path
+     * @return RedirectResponse
+     * @throws Exception
+     */
     public function redirect($path = '')
     {
         if (strpos($path, 'http') === false && strpos($path, '://') === false)
-            $path = $this->request->getBasePath() . '/' . $path;
+            $path = ErkinApp()->Request()->getBasePath() . '/' . $path;
 
         return new RedirectResponse($path);
     }
 
+    /**
+     * @return bool
+     * @throws Exception
+     */
     public function isPost()
     {
-        return $this->request->getMethod() == 'POST';
+        return ErkinApp()->Request()->getMethod() == 'POST';
     }
 
+    /**
+     * @param null $key
+     * @param null $default
+     * @return array|mixed
+     * @throws Exception
+     */
     public function _post($key = null, $default = null)
     {
         if ($key)
@@ -142,6 +165,12 @@ abstract class Controller
         return ErkinApp()->RequestPost()->all();
     }
 
+    /**
+     * @param null $key
+     * @param null $default
+     * @return array|mixed
+     * @throws Exception
+     */
     public function _get($key = null, $default = null)
     {
         if ($key)
@@ -151,11 +180,12 @@ abstract class Controller
     }
 
     /**
-     * @return \Symfony\Component\HttpFoundation\Session\Flash\FlashBag
+     * @return FlashBag
+     * @throws Exception
      */
     public function getFlashBag()
     {
-        return $this->sessions->getFlashBag();
+        return ErkinApp()->Session()->getFlashBag();
     }
 
 }
