@@ -1,4 +1,11 @@
 <?php
+if (!defined('APP_PATH'))
+    define('APP_PATH', BASE_PATH . '/app');
+
+if (!defined('LANGUAGE_PATH'))
+    define('LANGUAGE_PATH', BASE_PATH . '/languages');
+
+define('MODEL_PATH', realpath(APP_PATH . '/Model'));
 
 if (!defined('VIEW_PATH'))
     define('VIEW_PATH', realpath(BASE_PATH . '/themes'));

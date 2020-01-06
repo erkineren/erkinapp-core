@@ -17,7 +17,6 @@ use ErkinApp\Events\Events;
 use ErkinApp\Events\RequestEvent;
 use ErkinApp\Events\ResponseEvent;
 use ErkinApp\Exceptions\ErkinAppException;
-use ErkinApp\Template\Template;
 use ErkinApp\Template\TemplateManager;
 use Exception;
 use Monolog\Logger;
@@ -104,7 +103,7 @@ class ErkinApp implements HttpKernelInterface
 
     /**
      * @param $name
-     * @return bool|Model|Model[]|mixed|Container|EventDispatcher|ParameterBag|Request|SessionInterface|null
+     * @return mixed
      * @throws Exception
      */
     public function Get($name)
@@ -252,19 +251,17 @@ class ErkinApp implements HttpKernelInterface
     public function DB($dbKey)
     {
         $id = "db.$dbKey";
-        if ($dbKey == 'default') $id = 'db';
-        if (!$this->container->offsetGet($id)) {
-            $dsn = $this->Config()->get('db.dsn');
-            $host = $this->Config()->get('db.host');
-            $port = $this->Config()->get('db.port');
-            $username = $this->Config()->get('db.username');
-            $password = $this->Config()->get('db.password');
-            $dbname = $this->Config()->get('db.dbname');
+        if (!$this->container->has($id)) {
+            $dsn = $this->Config()->get("$id.dsn");
+            $host = $this->Config()->get("$id.host");
+            $port = $this->Config()->get("$id.port");
+            $username = $this->Config()->get("$id.username");
+            $password = $this->Config()->get("$id.password");
+            $dbname = $this->Config()->get("$id.dbname");
 
             if (!$dsn) {
                 $dsn = "mysql:dbname=$dbname;host=$host;port=$port;";
             }
-
             $this->container->offsetSet($id, $this->loadPDO($dsn, $username, $password));
         }
 

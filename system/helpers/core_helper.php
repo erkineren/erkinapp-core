@@ -104,8 +104,11 @@ namespace ErkinApp\Helpers {
             $method = isset($paths[2]) && !empty($paths[2]) ? $paths[2] : $defaultMethod;
         }
 
-
-        $classname = 'Application\\Controller\\' . $area . '\\' . $controller;
+        if (!class_exists("Application\\Controller\\$area\\$controller")) {
+            $controller = $defaultController;
+            $method = $paths[1];
+        }
+        $classname = "Application\\Controller\\$area\\$controller";
 
         $matched = false;
         foreach ($app->Routes()->all() as $name => $route) {
@@ -189,7 +192,7 @@ namespace ErkinApp\Helpers {
      */
     function loadLibrary($path)
     {
-        $filename = BASE_PATH . '/libraries/' . ltrim($path, '/');
+        $filename = BASE_PATH . '/libraries/' . ltrim($path, '/') . ".php";
         if (!file_exists($filename)) return false;
 
         include_once $filename;
@@ -206,5 +209,30 @@ namespace ErkinApp\Helpers {
             throw new ErkinAppException("Config file not found");
 
         $config = include $configFilePath;
+    }
+
+    function isCommandLineInterface()
+    {
+        if (defined('STDIN')) {
+            return true;
+        }
+
+        if (php_sapi_name() === 'cli') {
+            return true;
+        }
+
+        if (array_key_exists('SHELL', $_ENV)) {
+            return true;
+        }
+
+        if (empty($_SERVER['REMOTE_ADDR']) and !isset($_SERVER['HTTP_USER_AGENT']) and count($_SERVER['argv']) > 0) {
+            return true;
+        }
+
+        if (!array_key_exists('REQUEST_METHOD', $_SERVER)) {
+            return true;
+        }
+
+        return false;
     }
 }

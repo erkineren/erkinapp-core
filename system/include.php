@@ -1,6 +1,8 @@
 <?php
+
 if (!defined('BASE_PATH')) {
-    die('BASE_PATH constant is not defined !');
+//    die('BASE_PATH constant is not defined !');
+    define('BASE_PATH', dirname(dirname(dirname((new \ReflectionClass(\Composer\Autoload\ClassLoader::class))->getFileName()))));
 }
 define('SYS_PATH', __DIR__);
 

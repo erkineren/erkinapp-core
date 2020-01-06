@@ -28,6 +28,7 @@
     "ext-json": "*",
     "ext-pdo": "*",
     "ext-zip": "*",
+    "catfan/medoo": "^1.7",
     "cocur/slugify": "^3.2",
     "danielstjules/stringy": "^3.1",
     "doctrine/annotations": "^1.8",
