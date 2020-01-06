@@ -248,7 +248,7 @@ class ErkinApp implements HttpKernelInterface
      * @return PDO|null
      * @throws Exception
      */
-    public function DB($dbKey)
+    public function DB($dbKey = 'default')
     {
         $id = "db.$dbKey";
         if (!$this->container->has($id)) {
