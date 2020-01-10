@@ -5,11 +5,7 @@ namespace ErkinApp\Controller;
 
 use ErkinApp\AppContainer;
 use ErkinApp\ErkinApp;
-use ErkinApp\Exception\ErkinAppException;
-use ErkinApp\Model;
 use Exception;
-use PDO;
-use ReflectionException;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\Flash\FlashBag;
@@ -30,27 +26,6 @@ abstract class Controller
     public function __construct()
     {
         ErkinApp::getInstance()->setCurrentArea(explode('\\', get_called_class())[2]);
-    }
-
-    /**
-     * @param string $class
-     * @return Model
-     * @throws ErkinAppException
-     * @throws ReflectionException
-     */
-    public function getModel($class)
-    {
-        return ErkinApp()->Model($class);
-    }
-
-    /**
-     * @param string $dbkey
-     * @return PDO|null
-     * @throws Exception
-     */
-    public function getDb($dbkey = 'default')
-    {
-        return ErkinApp()->DB($dbkey);
     }
 
     /**

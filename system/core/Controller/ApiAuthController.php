@@ -10,8 +10,6 @@ use ErkinApp\Response\AjaxResponse;
 
 class ApiAuthController extends Controller implements IAuthController
 {
-
-
     public function __construct()
     {
         parent::__construct();

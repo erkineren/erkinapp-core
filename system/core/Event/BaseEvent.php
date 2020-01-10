@@ -25,7 +25,7 @@ abstract class BaseEvent extends Event
      * @param Request $request
      * @param Response|null $response
      */
-    public function __construct(Request $request, Response $response = null)
+    public function __construct(Request $request = null, Response $response = null)
     {
         $this->request = $request;
         $this->response = $response;
@@ -33,7 +33,7 @@ abstract class BaseEvent extends Event
 
     public function getRequest()
     {
-        return $this->request;
+        return $this->request ?? ErkinApp()->Request();
     }
 
     public function getResponse()

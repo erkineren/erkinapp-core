@@ -30,5 +30,9 @@ if (file_exists(BASE_PATH . '/config/dependencies.php')) {
     $dependencies();
 }
 
+if (file_exists(BASE_PATH . '/config/events.php')) {
+    include_once BASE_PATH . '/config/events.php';
+}
+
 
 

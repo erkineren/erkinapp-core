@@ -16,9 +16,9 @@ namespace {
 
 namespace ErkinApp\Helpers {
 
-    use ErkinApp\Event\ControllerNotFoundEvent;
     use ErkinApp\Event\ErrorEvent;
     use ErkinApp\Event\Events;
+    use ErkinApp\Event\NotFoundEvent;
     use ErkinApp\Event\RoutingEvent;
     use ErkinApp\Exception\ErkinAppException;
     use Exception;
@@ -60,30 +60,24 @@ namespace ErkinApp\Helpers {
         $app = ErkinApp();
         $request = $app->Request();
 
-        if (file_exists(BASE_PATH . '/config/events.php')) {
-            include_once BASE_PATH . '/config/events.php';
-        }
-
         $app->Dispatcher()->dispatch(new RoutingEvent($request), Events::ROUTING);
 
         $appRoute = $app->AppRoutes()->resolve(strtolower($request->getPathInfo()));
 
         if ($appRoute) {
             $app->AppRoutes()->registerRouteViaAppRoute($appRoute);
-            $app->setCurrentArea($appRoute->getArea());
-            $app->setCurrentController($appRoute->getControllerClass());
-            $app->setCurrentMethod($appRoute->getMethodName());
+            $app->setCurrentAppRoute($appRoute);
         } else {
 
             if (strtolower($request->getPathInfo()) !== rtrim(strtolower($request->getPathInfo()), '/')) {
                 (new RedirectResponse(rtrim(strtolower($request->getRequestUri()), '/'), 308))->send();
-//                die;
+                die;
             }
 
-            /** @var ControllerNotFoundEvent $controllerNotFoundEvent */
-            $controllerNotFoundEvent = $app->Dispatcher()->dispatch(new ControllerNotFoundEvent($request), Events::CONTROLLER_NOT_FOUND);
-            if ($controllerNotFoundEvent->hasResponse()) {
-                $controllerNotFoundEvent->getResponse()->send();
+            /** @var NotFoundEvent $notFoundEvent */
+            $notFoundEvent = $app->Dispatcher()->dispatch(new NotFoundEvent($request), Events::NOT_FOUND);
+            if ($notFoundEvent->hasResponse()) {
+                $notFoundEvent->getResponse()->send();
             } else {
                 (new Response())
                     ->setStatusCode(Response::HTTP_NOT_FOUND)

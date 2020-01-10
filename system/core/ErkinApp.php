@@ -10,13 +10,14 @@ use ErkinApp\Component\Config;
 use ErkinApp\Component\Localization;
 use ErkinApp\Controller\Controller;
 use ErkinApp\Controller\IAuthController;
-use ErkinApp\Event\ActionNotFoundEvent;
 use ErkinApp\Event\ControllerActionEvent;
 use ErkinApp\Event\ErrorEvent;
 use ErkinApp\Event\Events;
+use ErkinApp\Event\NotFoundEvent;
 use ErkinApp\Event\RequestEvent;
 use ErkinApp\Event\ResponseEvent;
 use ErkinApp\Exception\ErkinAppException;
+use ErkinApp\Route\AppRoute;
 use ErkinApp\Route\AppRouteCollection;
 use ErkinApp\Template\TemplateManager;
 use Exception;
@@ -59,7 +60,7 @@ class ErkinApp implements HttpKernelInterface
     /**
      * @var string
      */
-    protected $currentArea;
+    protected $currentArea = 'frontend';
 
     /**
      * @var Controller
@@ -75,6 +76,11 @@ class ErkinApp implements HttpKernelInterface
      * @var array
      */
     protected $currentMethodArgs;
+
+    /**
+     * @var AppRoute
+     */
+    protected $currentAppRoute;
 
 
     /**
@@ -106,7 +112,6 @@ class ErkinApp implements HttpKernelInterface
     /**
      * @param $name
      * @return mixed
-     * @throws Exception
      */
     public function Get($name)
     {
@@ -138,36 +143,6 @@ class ErkinApp implements HttpKernelInterface
     public function RequestPost()
     {
         return $this->Request()->request;
-    }
-
-    /**
-     * @param string $key
-     * @return bool|mixed
-     * @throws Exception
-     */
-    public function UserFrontend($key = '')
-    {
-        return $this->getUserInfo($this->Session()->get(SESSION_FRONTEND_AUTH), $key);
-    }
-
-    /**
-     * @param string $key
-     * @return bool|mixed
-     * @throws Exception
-     */
-    public function UserBackend($key = '')
-    {
-        return $this->getUserInfo($this->Session()->get(SESSION_BACKEND_AUTH), $key);
-    }
-
-    /**
-     * @param string $key
-     * @return bool|mixed
-     * @throws Exception
-     */
-    public function UserApi($key = '')
-    {
-        return $this->getUserInfo($this->Session()->get(SESSION_API_AUTH), $key);
     }
 
     /**
@@ -288,6 +263,36 @@ class ErkinApp implements HttpKernelInterface
     }
 
     /**
+     * @param string $key
+     * @return bool|mixed
+     * @throws Exception
+     */
+    public function UserFrontend($key = '')
+    {
+        return $this->getUserInfo($this->Session()->get(SESSION_FRONTEND_AUTH), $key);
+    }
+
+    /**
+     * @param string $key
+     * @return bool|mixed
+     * @throws Exception
+     */
+    public function UserBackend($key = '')
+    {
+        return $this->getUserInfo($this->Session()->get(SESSION_BACKEND_AUTH), $key);
+    }
+
+    /**
+     * @param string $key
+     * @return bool|mixed
+     * @throws Exception
+     */
+    public function UserApi($key = '')
+    {
+        return $this->getUserInfo($this->Session()->get(SESSION_API_AUTH), $key);
+    }
+
+    /**
      * @param $user
      * @param string $key
      * @return bool|mixed
@@ -347,9 +352,6 @@ class ErkinApp implements HttpKernelInterface
      */
     public function handle(Request $request, $type = HttpKernelInterface::MASTER_REQUEST, $catch = true)
     {
-//        $this->Container()->offsetSet(Request::class, $request);
-
-        // create a context using the current request
         $context = new RequestContext();
         $context->fromRequest($request);
 
@@ -383,10 +385,10 @@ class ErkinApp implements HttpKernelInterface
                 $method = isset($controller[1]) ? $controller[1] : 'index';
 
                 if (!method_exists($ctrl, $method)) {
-                    /** @var ActionNotFoundEvent $actionNotFoundEvent */
-                    $actionNotFoundEvent = $this->Dispatcher()->dispatch(new ActionNotFoundEvent($request), Events::ACTION_NOT_FOUND);
-                    if ($actionNotFoundEvent->hasResponse()) {
-                        return $actionNotFoundEvent->getResponse();
+                    /** @var NotFoundEvent $notFoundEvent */
+                    $notFoundEvent = $this->Dispatcher()->dispatch(new NotFoundEvent(), Events::NOT_FOUND);
+                    if ($notFoundEvent->hasResponse()) {
+                        return $notFoundEvent->getResponse();
                     } else {
                         throw new ErkinAppException("Action not exist : {$method}");
                     }
@@ -399,36 +401,38 @@ class ErkinApp implements HttpKernelInterface
                 $params = $r->getParameters();
 
 
-                $method_parameters = [];
+                $methodParameters = [];
                 foreach (array_column($params, 'name') as $paramName) {
                     if (isset($attributes[$paramName]))
-                        $method_parameters[] = $attributes[$paramName];
+                        $methodParameters[] = $attributes[$paramName];
                 }
 
 
                 foreach ($params as $key => $param) {
-                    if (!isset($method_parameters[$key]) && !$param->isOptional()) {
+                    if (!isset($methodParameters[$key]) && !$param->isOptional()) {
                         throw new ErkinAppException($param->getName() . " is required parameter");
                     }
                 }
 
-                $this->setCurrentMethodArgs($method_parameters);
+                $this->setCurrentMethodArgs($methodParameters);
 
-                $controllerActionEventName = implode('_', explode("\\", get_class($ctrl))) . '::' . $method;
+                $controllerEventName = implode('_', explode("\\", get_class($ctrl)));
+                $controllerActionEventName = $controllerEventName . '::' . $method;
 
-                $this->Dispatcher()->dispatch(new ControllerActionEvent($ctrl, $method, $method_parameters, $request), 'Application_Controller_' . $this->getCurrentArea() . '::before');
-                $this->Dispatcher()->dispatch(new ControllerActionEvent($ctrl, $method, $method_parameters, $request), $controllerActionEventName . '::before');
+                $this->Dispatcher()->dispatch(new ControllerActionEvent($ctrl, $method, $methodParameters, $request), 'Application_Controller_' . $this->getCurrentArea() . '::before');
+                $this->Dispatcher()->dispatch(new ControllerActionEvent($ctrl, $method, $methodParameters, $request), $controllerEventName . '::before');
+                $this->Dispatcher()->dispatch(new ControllerActionEvent($ctrl, $method, $methodParameters, $request), $controllerActionEventName . '::before');
 
                 $this->setCurrentController($ctrl);
                 $this->setCurrentMethod($method);
-                $this->setCurrentMethodArgs($method_parameters);
+                $this->setCurrentMethodArgs($methodParameters);
 
                 $response = call_user_func_array(
                     [
                         $ctrl,
                         $method,
                     ],
-                    $method_parameters
+                    $methodParameters
                 );
 
                 if (!($response instanceof Response)) {
@@ -439,31 +443,28 @@ class ErkinApp implements HttpKernelInterface
                 }
 
 
-                $this->Dispatcher()->dispatch(new ControllerActionEvent($ctrl, $method, $method_parameters, $request, $response), 'Application_Controller_' . $this->currentArea . '::after');
-                $this->Dispatcher()->dispatch(new ControllerActionEvent($ctrl, $method, $method_parameters, $request, $response), $controllerActionEventName . '::after');
-
+                $this->Dispatcher()->dispatch(new ControllerActionEvent($ctrl, $method, $methodParameters, $request, $response), $controllerActionEventName . '::after');
+                $this->Dispatcher()->dispatch(new ControllerActionEvent($ctrl, $method, $methodParameters, $request, $response), $controllerEventName . '::after');
+                $this->Dispatcher()->dispatch(new ControllerActionEvent($ctrl, $method, $methodParameters, $request, $response), 'Application_Controller_' . $this->getCurrentArea() . '::after');
 
             }
 
         } catch (ResourceNotFoundException $e1) {
 
-//            $response = new Response('An error occurred ResourceNotFoundException: ' . $e1->getMessage(), Response::HTTP_NOT_FOUND);
             /** @var ErrorEvent $errorEvent */
             $errorEvent = $this->Dispatcher()->dispatch(new ErrorEvent($request, $e1), Events::ERROR);
             if ($errorEvent->hasResponse()) return $errorEvent->getResponse();
             else throw $e1;
 
         } catch (ArgumentCountError $e2) {
-//            throw $e2;
-//            $response = new Response('An error occurred ArgumentCountError: ' . $e2->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
+
             /** @var ErrorEvent $errorEvent */
             $errorEvent = $this->Dispatcher()->dispatch(new ErrorEvent($request, $e2), Events::ERROR);
             if ($errorEvent->hasResponse()) return $errorEvent->getResponse();
             else throw $e2;
 
         } catch (Exception $e3) {
-//            throw $e2;
-//            $response = new Response('An error occurred ' . get_class_short_name($e3) . ': ' . $e3->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
+
             /** @var ErrorEvent $errorEvent */
             $errorEvent = $this->Dispatcher()->dispatch(new ErrorEvent($request, $e3), Events::ERROR);
             if ($errorEvent->hasResponse()) return $errorEvent->getResponse();
@@ -519,7 +520,6 @@ class ErkinApp implements HttpKernelInterface
     /**
      * @param $event
      * @param $callback
-     * @throws Exception
      */
     public function on($event, $callback)
     {
@@ -605,5 +605,28 @@ class ErkinApp implements HttpKernelInterface
     {
         $this->currentController = $currentController;
     }
+
+    /**
+     * @return AppRoute
+     */
+    public function getCurrentAppRoute(): AppRoute
+    {
+        return $this->currentAppRoute;
+    }
+
+    /**
+     * @param AppRoute $currentAppRoute
+     * @return ErkinApp
+     */
+    public function setCurrentAppRoute(AppRoute $appRoute, $updateRelated = true)
+    {
+        $this->currentAppRoute = $appRoute;
+        if ($updateRelated) {
+            $this->setCurrentArea($appRoute->getArea());
+            $this->setCurrentController($appRoute->getControllerClass());
+            $this->setCurrentMethod($appRoute->getMethodName());
+        }
+    }
+
 
 }

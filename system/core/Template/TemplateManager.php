@@ -56,6 +56,8 @@ class TemplateManager
      */
     public function getTemplatePath(): string
     {
+        if (!ErkinApp()->getCurrentArea())
+            throw new ErkinAppException("Empty area");
         return realpath(VIEW_PATH . '/' . ErkinApp()->Config()->get('theme.name') . '/' . ErkinApp()->getCurrentArea());
     }
 
@@ -67,7 +69,6 @@ class TemplateManager
      */
     public function getCompiled($filename, array $data, bool $includeParts)
     {
-
         if ($this->template instanceof PhpTemplate) {
             $this->template->setIncludePaths($includeParts);
         }

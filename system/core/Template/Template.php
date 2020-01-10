@@ -4,7 +4,7 @@ namespace ErkinApp\Template;
 
 
 use ErkinApp\Event\Events;
-use ErkinApp\Event\ViewFileNotFoundEvent;
+use ErkinApp\Event\NotFoundEvent;
 use ErkinApp\Exception\ViewFileNotFoundException;
 use Exception;
 use Symfony\Component\HttpFoundation\Response;
@@ -89,10 +89,10 @@ abstract class Template implements ITemplate
         $f = $this->getTemplatePath() . '/' . $this->getFilename() . $this->getFileExtension();
 
         if (!file_exists($f)) {
-            /** @var ViewFileNotFoundEvent $viewFileNotFoundEvent */
-            $viewFileNotFoundEvent = ErkinApp()->Dispatcher()->dispatch(new ViewFileNotFoundEvent(ErkinApp()->Request(), $this->getFilename()), Events::VIEW_FILE_NOT_FOUND);
-            if ($viewFileNotFoundEvent->hasResponse())
-                return $viewFileNotFoundEvent->getResponse();
+            /** @var NotFoundEvent $notFoundEvent */
+            $notFoundEvent = ErkinApp()->Dispatcher()->dispatch(new NotFoundEvent(), Events::NOT_FOUND);
+            if ($notFoundEvent->hasResponse())
+                return $notFoundEvent->getResponse();
             return new Response("View file not found", 500);
         }
 

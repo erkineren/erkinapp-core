@@ -16,9 +16,7 @@ use ReflectionException;
  */
 class Container extends PimpleContainer implements ContainerInterface
 {
-    use AppContainer {
-        AppContainer::__get as ___get;
-    }
+    use AppContainer;
 
     /**
      * @param $name
