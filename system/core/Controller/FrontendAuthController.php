@@ -10,7 +10,6 @@ use ErkinApp\Event\Events;
 
 class FrontendAuthController extends Controller implements IAuthController
 {
-
     public $user;
 
     /**
@@ -43,7 +42,7 @@ class FrontendAuthController extends Controller implements IAuthController
 
     function isLoginPage()
     {
-        return strpos(strtolower($this->request->getPathInfo()), ('/' . strtolower(FRONTEND_LOGIN_PATH))) === 0;
+        return strpos(strtolower($this->getRequest()->getPathInfo()), ('/' . strtolower(FRONTEND_LOGIN_PATH))) === 0;
     }
 
     /**

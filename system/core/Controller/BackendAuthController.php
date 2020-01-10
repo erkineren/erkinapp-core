@@ -10,8 +10,6 @@ use ErkinApp\Event\Events;
 
 class BackendAuthController extends Controller implements IAuthController
 {
-
-
     public function __construct()
     {
         parent::__construct();
@@ -19,12 +17,12 @@ class BackendAuthController extends Controller implements IAuthController
 
     function isLoggedIn()
     {
-        $isAuthenticated = ErkinApp()->Session()->get(SESSION_BACKEND_AUTH) !== null;
+        $isAuthenticated = $this->getSession()->get(SESSION_BACKEND_AUTH) !== null;
 
         // if session is not set, check the remember me cookie
         if (!$isAuthenticated) {
             /** @var CheckLoggedInStatusEvent $event */
-            $event = ErkinApp()->Dispatcher()->dispatch(new CheckLoggedInStatusEvent($this), Events::CHECK_LOGGED_IN_STATUS);
+            $event = $this->getDispatcher()->dispatch(new CheckLoggedInStatusEvent($this), Events::CHECK_LOGGED_IN_STATUS);
             $isAuthenticated = $event->isAuthenticated();
         }
 
@@ -38,6 +36,6 @@ class BackendAuthController extends Controller implements IAuthController
 
     function isLoginPage()
     {
-        return strpos(strtolower($this->request->getPathInfo()), ('/' . strtolower(BACKEND_LOGIN_PATH))) === 0;
+        return strpos(strtolower($this->getRequest()->getPathInfo()), ('/' . strtolower(BACKEND_LOGIN_PATH))) === 0;
     }
 }

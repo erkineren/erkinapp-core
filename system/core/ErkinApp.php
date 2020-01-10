@@ -446,7 +446,7 @@ class ErkinApp implements HttpKernelInterface
                 $this->Dispatcher()->dispatch(new ControllerActionEvent($ctrl, $method, $methodParameters, $request, $response), $controllerActionEventName . '::after');
                 $this->Dispatcher()->dispatch(new ControllerActionEvent($ctrl, $method, $methodParameters, $request, $response), $controllerEventName . '::after');
                 $this->Dispatcher()->dispatch(new ControllerActionEvent($ctrl, $method, $methodParameters, $request, $response), 'Application_Controller_' . $this->getCurrentArea() . '::after');
-
+                
             }
 
         } catch (ResourceNotFoundException $e1) {

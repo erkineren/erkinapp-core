@@ -17,7 +17,7 @@ class ApiAuthController extends Controller implements IAuthController
 
     function isLoggedIn()
     {
-        $auth = $this->request->headers->get('authorization');
+        $auth = $this->getRequest()->headers->get('authorization');
         $credentials = base64_decode(substr($auth, 6));
 
         $credentials = explode(':', $credentials);
