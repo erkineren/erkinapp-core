@@ -4,6 +4,7 @@
 namespace ErkinApp\Components;
 
 use ErkinApp\Exceptions\ErkinAppException;
+use function ErkinApp\Helpers\debugPrint;
 use function ErkinApp\Helpers\isCommandLineInterface;
 
 class Config extends DotNotationParameters
@@ -19,9 +20,18 @@ class Config extends DotNotationParameters
             throw new ErkinAppException("Config file not found");
         $configData = include $configFilePath;
         $this->setArray($configData);
-        $this->loadThemeConfig();
         $this->setPhpSettings();
+        $this->loadThemeConfig();
+        $this->loadPhinxConfiguration();
+
         return $this;
+    }
+
+    public function setPhpSettings()
+    {
+        foreach ($this->get('phpsettings') as $varname => $newvalue) {
+            ini_set($varname, $newvalue);
+        }
     }
 
     public function loadThemeConfig()
@@ -36,10 +46,23 @@ class Config extends DotNotationParameters
         }
     }
 
-    public function setPhpSettings()
+    public function loadPhinxConfiguration()
     {
-        foreach ($this->get('phpsettings') as $varname => $newvalue) {
-            ini_set($varname, $newvalue);
-        }
+        $phinxEnvironments = array_map(function ($values) {
+            return [
+                'adapter' => 'mysql',
+                'host' => $values['host'],
+                'name' => $values['dbname'],
+                'user' => $values['username'],
+                'pass' => $values['password'],
+                'port' => $values['port'],
+                'charset' => 'utf8',
+            ];
+        }, $this->get('db'));
+
+        $phinxConfig = $this->getInner('phinx');
+        $phinxConfig->mergeRecursive('environments', $phinxEnvironments);
+
+        $this->set('phinx', $phinxConfig->all());
     }
 }

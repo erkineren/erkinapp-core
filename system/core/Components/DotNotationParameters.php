@@ -222,6 +222,15 @@ class DotNotationParameters implements ArrayAccess, Countable, IteratorAggregate
     }
 
     /**
+     * @param $key
+     * @return DotNotationParameters
+     */
+    public function getInner($key)
+    {
+        return new DotNotationParameters($this->get($key));
+    }
+
+    /**
      * Return the given items as an array
      *
      * @param mixed $items
