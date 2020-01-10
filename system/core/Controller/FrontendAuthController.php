@@ -4,8 +4,8 @@
 namespace ErkinApp\Controller;
 
 
-use ErkinApp\Events\CheckLoggedInStatusEvent;
-use ErkinApp\Events\Events;
+use ErkinApp\Event\CheckLoggedInStatusEvent;
+use ErkinApp\Event\Events;
 
 
 class FrontendAuthController extends Controller implements IAuthController
@@ -19,7 +19,7 @@ class FrontendAuthController extends Controller implements IAuthController
     public function __construct()
     {
         parent::__construct();
-        $this->user = $this->sessions->get(SESSION_FRONTEND_AUTH);
+        $this->user = ErkinApp()->Session()->get(SESSION_FRONTEND_AUTH);
     }
 
     function isLoggedIn()

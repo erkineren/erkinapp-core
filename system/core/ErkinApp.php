@@ -6,21 +6,23 @@ namespace ErkinApp;
 use ArgumentCountError;
 use Closure;
 use DateTime;
-use ErkinApp\Components\Config;
-use ErkinApp\Components\Localization;
+use ErkinApp\Component\Config;
+use ErkinApp\Component\Localization;
 use ErkinApp\Controller\Controller;
 use ErkinApp\Controller\IAuthController;
-use ErkinApp\Events\ActionNotFoundEvent;
-use ErkinApp\Events\ControllerActionEvent;
-use ErkinApp\Events\ErrorEvent;
-use ErkinApp\Events\Events;
-use ErkinApp\Events\RequestEvent;
-use ErkinApp\Events\ResponseEvent;
-use ErkinApp\Exceptions\ErkinAppException;
+use ErkinApp\Event\ActionNotFoundEvent;
+use ErkinApp\Event\ControllerActionEvent;
+use ErkinApp\Event\ErrorEvent;
+use ErkinApp\Event\Events;
+use ErkinApp\Event\RequestEvent;
+use ErkinApp\Event\ResponseEvent;
+use ErkinApp\Exception\ErkinAppException;
+use ErkinApp\Route\AppRouteCollection;
 use ErkinApp\Template\TemplateManager;
 use Exception;
 use Monolog\Logger;
 use PDO;
+use ReflectionException;
 use ReflectionMethod;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -177,6 +179,14 @@ class ErkinApp implements HttpKernelInterface
     }
 
     /**
+     * @return AppRouteCollection
+     */
+    public function AppRoutes(): AppRouteCollection
+    {
+        return $this->Get(AppRouteCollection::class);
+    }
+
+    /**
      * @return Logger
      * @throws Exception
      */
@@ -234,9 +244,9 @@ class ErkinApp implements HttpKernelInterface
      * @param string $class
      * @return Model
      * @throws ErkinAppException
-     * @throws \ReflectionException
+     * @throws ReflectionException
      */
-    public function Models($class)
+    public function Model($class)
     {
         if (!class_exists($class))
             throw new ErkinAppException("Model class not found");
@@ -352,8 +362,8 @@ class ErkinApp implements HttpKernelInterface
             $requestEvent = $this->Dispatcher()->dispatch(new RequestEvent($request), Events::REQUEST);
 
             $controller = $attributes['controller'];
-
             unset($attributes['controller']);
+            unset($attributes['_route']);
 
             if ($requestEvent->hasResponse()) {
                 $response = $requestEvent->getResponse();
@@ -388,31 +398,13 @@ class ErkinApp implements HttpKernelInterface
                 $r = new ReflectionMethod($ctrl, $method);
                 $params = $r->getParameters();
 
-                /*
-                 * If default dynamic routing, route and controller/method strings are similar
-                 */
-                if (strpos(strtolower($attributes['_route']), strtolower($ctrl_method_path)) !== false) {
 
-                    if (strpos(strtolower($request->getPathInfo()), '/frontend') === 0 ||
-                        strpos(strtolower($request->getPathInfo()), '/' . BACKEND_AREA_NAME) === 0 ||
-                        strpos(strtolower($request->getPathInfo()), '/' . API_AREA_NAME) === 0) {
-                        $method_parameters = array_slice(explode('/', $attributes['_route']), 4);
-                    } else {
-                        $method_parameters = array_slice(explode('/', $attributes['_route']), 3);
-                    }
-
-                } /*
-                 * If not,
-                 * Custom routing must be handle
-                 * Controller method parameters must be handle properly
-                 */
-                else {
-                    $method_parameters = [];
-                    foreach (array_column($params, 'name') as $paramName) {
-                        if (isset($attributes[$paramName]))
-                            $method_parameters[] = $attributes[$paramName];
-                    }
+                $method_parameters = [];
+                foreach (array_column($params, 'name') as $paramName) {
+                    if (isset($attributes[$paramName]))
+                        $method_parameters[] = $attributes[$paramName];
                 }
+
 
                 foreach ($params as $key => $param) {
                     if (!isset($method_parameters[$key]) && !$param->isOptional()) {
@@ -480,7 +472,7 @@ class ErkinApp implements HttpKernelInterface
         }
 
 
-        $this->Dispatcher()->dispatch(new ResponseEvent($response, $request), Events::RESPONSE);
+        $this->Dispatcher()->dispatch(new ResponseEvent($request, $response), Events::RESPONSE);
 
         return $response;
     }

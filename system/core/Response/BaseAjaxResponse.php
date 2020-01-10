@@ -6,7 +6,7 @@
  * Time: 23:51
  */
 
-namespace ErkinApp\Responses;
+namespace ErkinApp\Response;
 
 
 abstract class BaseAjaxResponse implements IAjaxResponse

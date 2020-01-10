@@ -4,8 +4,8 @@
 namespace ErkinApp\Controller;
 
 
-use ErkinApp\Events\CheckLoggedInStatusEvent;
-use ErkinApp\Events\Events;
+use ErkinApp\Event\CheckLoggedInStatusEvent;
+use ErkinApp\Event\Events;
 
 
 class BackendAuthController extends Controller implements IAuthController

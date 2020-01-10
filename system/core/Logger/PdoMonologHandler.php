@@ -7,6 +7,7 @@ namespace ErkinApp\Logger;
 use Monolog\Handler\AbstractProcessingHandler;
 use Monolog\Logger;
 use PDO;
+use PDOStatement;
 
 class PdoMonologHandler extends AbstractProcessingHandler
 {
@@ -19,7 +20,7 @@ class PdoMonologHandler extends AbstractProcessingHandler
      */
     private $pdo;
     /**
-     * @var \PDOStatement
+     * @var PDOStatement
      */
     private $statement;
 

@@ -3,9 +3,9 @@
 namespace ErkinApp\Template;
 
 
-use ErkinApp\Events\Events;
-use ErkinApp\Events\ViewFileNotFoundEvent;
-use ErkinApp\Exceptions\ViewFileNotFoundException;
+use ErkinApp\Event\Events;
+use ErkinApp\Event\ViewFileNotFoundEvent;
+use ErkinApp\Exception\ViewFileNotFoundException;
 use Exception;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -89,7 +89,11 @@ abstract class Template implements ITemplate
         $f = $this->getTemplatePath() . '/' . $this->getFilename() . $this->getFileExtension();
 
         if (!file_exists($f)) {
-            throw new ViewFileNotFoundException();
+            /** @var ViewFileNotFoundEvent $viewFileNotFoundEvent */
+            $viewFileNotFoundEvent = ErkinApp()->Dispatcher()->dispatch(new ViewFileNotFoundEvent(ErkinApp()->Request(), $this->getFilename()), Events::VIEW_FILE_NOT_FOUND);
+            if ($viewFileNotFoundEvent->hasResponse())
+                return $viewFileNotFoundEvent->getResponse();
+            return new Response("View file not found", 500);
         }
 
         return $f;
@@ -113,7 +117,7 @@ abstract class Template implements ITemplate
      */
     public function render($filename, $data = [])
     {
-       return $this->renderCompiled($this->getCompiled($filename, $data));
+        return $this->renderCompiled($this->getCompiled($filename, $data));
     }
 
     /**
@@ -123,15 +127,7 @@ abstract class Template implements ITemplate
      */
     public function renderCompiled(string $compiledView)
     {
-        try {
-            return new Response($compiledView);
-        } catch (ViewFileNotFoundException $viewFileNotFoundException) {
-            /** @var ViewFileNotFoundEvent $viewFileNotFoundEvent */
-            $viewFileNotFoundEvent = ErkinApp()->Dispatcher()->dispatch(new ViewFileNotFoundEvent(ErkinApp()->Request(), $filename), Events::VIEW_FILE_NOT_FOUND);
-            if ($viewFileNotFoundEvent->hasResponse())
-                return $viewFileNotFoundEvent->getResponse();
-        }
-        return new Response("renderView error", 500);
+        return new Response($compiledView);
     }
 
 }

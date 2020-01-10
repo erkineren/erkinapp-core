@@ -6,10 +6,12 @@
  * Time: 15:00
  */
 
-namespace ErkinApp\Exceptions;
+namespace ErkinApp\Exception;
 
 
-class ErkinAppException extends \Exception
+use Exception;
+
+class ErkinAppException extends Exception
 {
 
 }

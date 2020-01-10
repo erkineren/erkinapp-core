@@ -1,23 +1,13 @@
 <?php
 
-namespace ErkinApp\Events;
+namespace ErkinApp\Event;
 
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Contracts\EventDispatcher\Event;
 
-class ViewFileNotFoundEvent extends Event
+class ViewFileNotFoundEvent extends BaseEvent
 {
-    /**
-     * @var Request
-     */
-    protected $request;
-
-    /**
-     * @var Response
-     */
-    protected $response;
     /**
      * @var string
      */
@@ -30,29 +20,10 @@ class ViewFileNotFoundEvent extends Event
      */
     public function __construct(Request $request, string $filename)
     {
+        parent::__construct($request);
         $this->request = $request;
         $this->filename = $filename;
         $this->setResponse(new Response("View file not found : <strong>{$filename}</strong>"));
-    }
-
-    public function getRequest()
-    {
-        return $this->request;
-    }
-
-    public function getResponse()
-    {
-        return $this->response;
-    }
-
-    public function setResponse(Response $response)
-    {
-        $this->response = $response;
-    }
-
-    public function hasResponse()
-    {
-        return $this->response !== null;
     }
 
     /**

@@ -1,7 +1,7 @@
 <?php
 
 
-namespace ErkinApp\Events;
+namespace ErkinApp\Event;
 
 
 use ErkinApp\Controller\IAuthController;

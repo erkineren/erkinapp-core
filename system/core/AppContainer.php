@@ -3,28 +3,26 @@
 
 namespace ErkinApp;
 
-use Envms\FluentPDO\Query;
-use ErkinApp\Components\Config;
+use ErkinApp\Component\Config;
+use ErkinApp\Component\Localization;
+use ErkinApp\Template\TemplateManager;
 use Monolog\Logger;
-use Pimple\Container;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Session\SessionInterface;
 
 /**
  * Trait AppContainer
  * @package ErkinApp
- * @property-read  Request $request
- * @property-read EventDispatcher $dispatcher
- * @property-read SessionInterface $sessions
- * @property-read ParameterBag $cookies
- * @property-read Model[] $models
- * @property-read string $area
- * @property-read Query $db
- * @property-read Container $container
- * @property-read Logger $logger
- * @property-read Config $config
+ * @property-read Config config
+ * @property-read Localization localization
+ * @property-read EventDispatcher dispatcher
+ * @property-read Request request
+ * @property-read Logger logger
+ * @property-read TemplateManager templateManager
+ * @property-read array classMaps
+ * @property-read ParameterBag cookies
+ * @property-read string area
  */
 trait AppContainer
 {

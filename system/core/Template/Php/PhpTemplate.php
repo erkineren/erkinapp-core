@@ -2,8 +2,9 @@
 
 namespace ErkinApp\Template\Php;
 
-use ErkinApp\Exceptions\ViewFileNotFoundException;
+use ErkinApp\Exception\ViewFileNotFoundException;
 use ErkinApp\Template\Template;
+use Exception;
 
 class PhpTemplate extends Template
 {
@@ -33,7 +34,7 @@ class PhpTemplate extends Template
     /**
      * @return string
      * @throws ViewFileNotFoundException
-     * @throws \Exception
+     * @throws Exception
      */
     public function resolve(): string
     {

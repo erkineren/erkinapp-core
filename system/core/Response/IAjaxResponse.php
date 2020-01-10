@@ -6,7 +6,7 @@
  * Time: 00:49
  */
 
-namespace ErkinApp\Responses;
+namespace ErkinApp\Response;
 
 
 interface IAjaxResponse

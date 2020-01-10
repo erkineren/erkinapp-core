@@ -4,10 +4,11 @@
 namespace ErkinApp\Template;
 
 
-use ErkinApp\Exceptions\ErkinAppException;
+use ErkinApp\Exception\ErkinAppException;
 use ErkinApp\Template\Php\PhpTemplate;
 use Exception;
 use ReflectionException;
+use Symfony\Component\HttpFoundation\Response;
 
 class TemplateManager
 {
@@ -78,7 +79,7 @@ class TemplateManager
      * @param $filename
      * @param array $data
      * @param bool $includeParts
-     * @return \Symfony\Component\HttpFoundation\Response
+     * @return Response
      * @throws Exception
      */
     public function render($filename, array $data, bool $includeParts)

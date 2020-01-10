@@ -5,7 +5,9 @@ namespace ErkinApp\Template\Smarty;
 
 
 use ErkinApp\Template\Template;
+use Exception;
 use Smarty;
+use SmartyException;
 
 class SmartyTemplate extends Template
 {
@@ -24,7 +26,7 @@ class SmartyTemplate extends Template
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function configure()
     {
@@ -41,7 +43,7 @@ class SmartyTemplate extends Template
 
     /**
      * @return string
-     * @throws \SmartyException
+     * @throws SmartyException
      */
     public function resolve(): string
     {

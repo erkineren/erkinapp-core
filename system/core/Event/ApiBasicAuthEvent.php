@@ -1,9 +1,10 @@
 <?php
 
 
-namespace ErkinApp\Events;
+namespace ErkinApp\Event;
 
 
+use Exception;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Contracts\EventDispatcher\Event;
 
@@ -71,7 +72,7 @@ class ApiBasicAuthEvent extends Event
 
     /**
      * @param bool $isAuthenticated
-     * @throws \Exception
+     * @throws Exception
      */
     public function setAuthenticated($isAuthenticated)
     {

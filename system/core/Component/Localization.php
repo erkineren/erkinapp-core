@@ -1,7 +1,7 @@
 <?php
 
 
-namespace ErkinApp\Components;
+namespace ErkinApp\Component;
 
 
 class Localization extends DotNotationParameters

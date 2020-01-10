@@ -4,9 +4,7 @@
 namespace ErkinApp;
 
 
-use ErkinApp\Components\Config;
-use ErkinApp\Components\Localization;
-use ErkinApp\Exceptions\ErkinAppException;
+use ErkinApp\Exception\ErkinAppException;
 use Pimple\Container as PimpleContainer;
 use Psr\Container\ContainerInterface;
 use ReflectionClass;
@@ -15,11 +13,13 @@ use ReflectionException;
 /**
  * Class Container
  * @package ErkinApp
- * @property Config config
- * @property Localization localization
  */
 class Container extends PimpleContainer implements ContainerInterface
 {
+    use AppContainer {
+        AppContainer::__get as ___get;
+    }
+
     /**
      * @param $name
      * @return mixed
@@ -72,5 +72,10 @@ class Container extends PimpleContainer implements ContainerInterface
     public function has($id)
     {
         return $this->offsetExists($id);
+    }
+
+    public function getClassMaps()
+    {
+        return $this->offsetGet('classMaps');
     }
 }

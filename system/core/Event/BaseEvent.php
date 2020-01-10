@@ -1,14 +1,14 @@
 <?php
 
-namespace ErkinApp\Events;
+
+namespace ErkinApp\Event;
 
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Contracts\EventDispatcher\Event;
 
-
-class ActionNotFoundEvent extends Event
+abstract class BaseEvent extends Event
 {
     /**
      * @var Request
@@ -23,10 +23,12 @@ class ActionNotFoundEvent extends Event
     /**
      * RequestEvent constructor.
      * @param Request $request
+     * @param Response|null $response
      */
-    public function __construct(Request $request)
+    public function __construct(Request $request, Response $response = null)
     {
         $this->request = $request;
+        $this->response = $response;
     }
 
     public function getRequest()
@@ -48,5 +50,4 @@ class ActionNotFoundEvent extends Event
     {
         return $this->response !== null;
     }
-
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace ErkinApp\Components;
+namespace ErkinApp\Component;
 
 
 use ArrayAccess;

@@ -6,7 +6,7 @@
  * Time: 11:46
  */
 
-namespace ErkinApp\Responses;
+namespace ErkinApp\Response;
 
 
 use Symfony\Component\HttpFoundation\JsonResponse;

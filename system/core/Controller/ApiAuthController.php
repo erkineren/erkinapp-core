@@ -4,9 +4,9 @@
 namespace ErkinApp\Controller;
 
 
-use ErkinApp\Events\ApiBasicAuthEvent;
-use ErkinApp\Events\Events;
-use ErkinApp\Responses\AjaxResponse;
+use ErkinApp\Event\ApiBasicAuthEvent;
+use ErkinApp\Event\Events;
+use ErkinApp\Response\AjaxResponse;
 
 class ApiAuthController extends Controller implements IAuthController
 {

@@ -5,7 +5,7 @@ namespace ErkinApp\Controller;
 
 use ErkinApp\AppContainer;
 use ErkinApp\ErkinApp;
-use ErkinApp\Exceptions\ErkinAppException;
+use ErkinApp\Exception\ErkinAppException;
 use ErkinApp\Model;
 use Exception;
 use PDO;
@@ -40,7 +40,7 @@ abstract class Controller
      */
     public function getModel($class)
     {
-        return ErkinApp()->Models($class);
+        return ErkinApp()->Model($class);
     }
 
     /**

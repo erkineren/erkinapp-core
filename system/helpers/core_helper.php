@@ -16,13 +16,13 @@ namespace {
 
 namespace ErkinApp\Helpers {
 
-    use ErkinApp\Constants;
-    use ErkinApp\Events\ControllerNotFoundEvent;
-    use ErkinApp\Events\ErrorEvent;
-    use ErkinApp\Events\Events;
-    use ErkinApp\Events\RoutingEvent;
-    use ErkinApp\Exceptions\ErkinAppException;
+    use ErkinApp\Event\ControllerNotFoundEvent;
+    use ErkinApp\Event\ErrorEvent;
+    use ErkinApp\Event\Events;
+    use ErkinApp\Event\RoutingEvent;
+    use ErkinApp\Exception\ErkinAppException;
     use Exception;
+    use Symfony\Component\HttpFoundation\RedirectResponse;
     use Symfony\Component\HttpFoundation\Response;
     use Whoops\Handler\CallbackHandler;
     use Whoops\Handler\Handler;
@@ -38,10 +38,10 @@ namespace ErkinApp\Helpers {
             throw new ErkinAppException("BASE_PATH is not defined !");
         }
         if (!defined('APP_PATH')) {
-            define('APP_PATH', BASE_PATH . '/app');
+            define('APP_PATH', realpath(BASE_PATH . '/app'));
         }
         if (!defined('LANGUAGE_PATH')) {
-            define('LANGUAGE_PATH', BASE_PATH . '/languages');
+            define('LANGUAGE_PATH', realpath(BASE_PATH . '/languages'));
         }
 
         $whoops = new Run;
@@ -64,81 +64,34 @@ namespace ErkinApp\Helpers {
             include_once BASE_PATH . '/config/events.php';
         }
 
-
         $app->Dispatcher()->dispatch(new RoutingEvent($request), Events::ROUTING);
 
+        $appRoute = $app->AppRoutes()->resolve(strtolower($request->getPathInfo()));
 
-        $paths = explode('/', $request->getPathInfo());
+        if ($appRoute) {
+            $app->AppRoutes()->registerRouteViaAppRoute($appRoute);
+            $app->setCurrentArea($appRoute->getArea());
+            $app->setCurrentController($appRoute->getControllerClass());
+            $app->setCurrentMethod($appRoute->getMethodName());
+        } else {
 
-        if (count($paths) < 2 && !$app->Routes()->get($request->getPathInfo())) {
-            (new Response())
-                ->setStatusCode(Response::HTTP_BAD_REQUEST)
-                ->setContent("Route error")
-                ->send();
+            if (strtolower($request->getPathInfo()) !== rtrim(strtolower($request->getPathInfo()), '/')) {
+                (new RedirectResponse(rtrim(strtolower($request->getRequestUri()), '/'), 308))->send();
+//                die;
+            }
+
+            /** @var ControllerNotFoundEvent $controllerNotFoundEvent */
+            $controllerNotFoundEvent = $app->Dispatcher()->dispatch(new ControllerNotFoundEvent($request), Events::CONTROLLER_NOT_FOUND);
+            if ($controllerNotFoundEvent->hasResponse()) {
+                $controllerNotFoundEvent->getResponse()->send();
+            } else {
+                (new Response())
+                    ->setStatusCode(Response::HTTP_NOT_FOUND)
+                    ->setContent('Route not found "' . $request->getPathInfo() . '"')
+                    ->send();
+            }
             die;
         }
-
-        $area = Constants::AREA_FRONTEND;
-        $defaultController = ROUTE_FRONTEND_DEFAULT_CONTROLLER;
-        $defaultMethod = ROUTE_FRONTEND_DEFAULT_METHOD;
-
-        switch (strtolower($paths[1])) {
-            case strtolower(BACKEND_AREA_NAME):
-                $area = Constants::AREA_BACKEND;
-                $defaultController = ROUTE_BACKEND_DEFAULT_CONTROLLER;
-                $defaultMethod = ROUTE_BACKEND_DEFAULT_METHOD;
-                break;
-            case 'api':
-                $area = Constants::AREA_API;
-                $defaultController = ROUTE_API_DEFAULT_CONTROLLER;
-                $defaultMethod = ROUTE_API_DEFAULT_METHOD;
-                break;
-        }
-        $app->setCurrentArea($area);
-
-        if (in_array(strtolower($paths[1]), ['frontend', strtolower(BACKEND_AREA_NAME), strtolower(API_AREA_NAME)])) {
-            $controller = !empty($paths[2]) ? ucfirst(strtolower($paths[2])) : $defaultController;
-            $method = isset($paths[3]) && !empty($paths[3]) ? $paths[3] : $defaultMethod;
-        } else {
-            $controller = !empty($paths[1]) ? ucfirst(strtolower($paths[1])) : $defaultController;
-            $method = isset($paths[2]) && !empty($paths[2]) ? $paths[2] : $defaultMethod;
-        }
-
-        if (!class_exists("Application\\Controller\\$area\\$controller")) {
-            $controller = $defaultController;
-            $method = $paths[1];
-        }
-        $classname = "Application\\Controller\\$area\\$controller";
-
-        $matched = false;
-        foreach ($app->Routes()->all() as $name => $route) {
-            if ($matched = preg_match($route->compile()->getRegex(), $request->getPathInfo())) break;
-        }
-
-        if (!$matched) {
-            if (!class_exists($classname)) {
-                /** @var ControllerNotFoundEvent $controllerNotFoundEvent */
-                $controllerNotFoundEvent = $app->Dispatcher()->dispatch(new ControllerNotFoundEvent($request), Events::CONTROLLER_NOT_FOUND);
-                if ($controllerNotFoundEvent->hasResponse()) {
-                    $controllerNotFoundEvent->getResponse()->send();
-                } else {
-                    (new Response())
-                        ->setStatusCode(Response::HTTP_NOT_FOUND)
-                        ->setContent("Class <strong> {$classname} </strong> not found for route (" . $request->getPathInfo() . ")!")
-                        ->send();
-                }
-                die;
-            }
-            $app->map($request->getPathInfo(),
-                [
-                    $classname,
-                    $method
-                ]);
-        }
-
-
-        $app->setCurrentController($classname);
-        $app->setCurrentMethod($method);
 
         $response = $app->handle($request);
         $response->send();

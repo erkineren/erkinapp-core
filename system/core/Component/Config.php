@@ -1,10 +1,9 @@
 <?php
 
 
-namespace ErkinApp\Components;
+namespace ErkinApp\Component;
 
-use ErkinApp\Exceptions\ErkinAppException;
-use function ErkinApp\Helpers\debugPrint;
+use ErkinApp\Exception\ErkinAppException;
 use function ErkinApp\Helpers\isCommandLineInterface;
 
 class Config extends DotNotationParameters
