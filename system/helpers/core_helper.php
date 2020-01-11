@@ -59,6 +59,7 @@ namespace ErkinApp\Helpers {
         // Our framework is being handling itself
         $app = ErkinApp();
         $request = $app->Request();
+        $app->Localization()->determineLanguage();
 
         $app->Dispatcher()->dispatch(new RoutingEvent($request), Events::ROUTING);
 

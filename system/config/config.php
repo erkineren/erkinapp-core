@@ -28,5 +28,5 @@ return array_replace_recursive([
             'template' => PhpTemplate::class,
         ]
     ],
-    'language' => 'turkish',
+    'language' => 'tr',
 ], $customConfig);

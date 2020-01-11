@@ -5,6 +5,7 @@ namespace ErkinApp\Template\Php;
 use ErkinApp\Exception\ViewFileNotFoundException;
 use ErkinApp\Template\Template;
 use Exception;
+use function ErkinApp\Helpers\debugPrint;
 
 class PhpTemplate extends Template
 {

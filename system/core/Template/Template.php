@@ -91,9 +91,12 @@ abstract class Template implements ITemplate
         if (!file_exists($f)) {
             /** @var NotFoundEvent $notFoundEvent */
             $notFoundEvent = ErkinApp()->Dispatcher()->dispatch(new NotFoundEvent(), Events::NOT_FOUND);
-            if ($notFoundEvent->hasResponse())
-                return $notFoundEvent->getResponse();
-            return new Response("View file not found", 500);
+            if ($notFoundEvent->hasResponse()) {
+                $notFoundEvent->getResponse()->send();
+                die;
+            }
+
+            throw new ViewFileNotFoundException("View file not found at $f");
         }
 
         return $f;

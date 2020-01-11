@@ -30,16 +30,7 @@ class Localization extends DotNotationParameters
 
     function getCurrentLangCode()
     {
-        switch ($this->getCurrentLanguage()) {
-            case 'turkish':
-                return 'tr';
-            case 'english':
-                return 'en';
-            case 'germany':
-                return 'de';
-            default:
-                return null;
-        }
+        return ErkinApp()->Config()->get('language');
     }
 
     function getCurrentLanguage()
@@ -49,8 +40,19 @@ class Localization extends DotNotationParameters
 
     public function setCurrentLanguage($lang)
     {
-        if (is_string($lang))
+        if (is_string($lang)) {
             ErkinApp()->Config()->set('language', $lang);
+            ErkinApp()->Session()->set('hl', $lang);
+            ErkinApp()->Request()->setLocale($lang);
+        }
         return $this;
+    }
+
+    public function determineLanguage()
+    {
+        $hrefLang = ErkinApp()->Request()->get('hl');
+        $sessionLang = ErkinApp()->Session()->get('hl');
+
+        $this->setCurrentLanguage($hrefLang ?? $sessionLang ?? $this->getCurrentLanguage());
     }
 }

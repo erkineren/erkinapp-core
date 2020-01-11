@@ -51,9 +51,8 @@ class SmartyTemplate extends Template
             $this->smarty->assign($key, $value);
         }
 
-//        $template = file_get_contents($this->getFileFullPath());
-//        return $smarty->fetch('string:' . $template);
-        return $this->smarty->fetch($this->getFilename() . $this->getFileExtension());
+
+        return $this->smarty->fetch($this->getFileFullPath());
     }
 
     /**

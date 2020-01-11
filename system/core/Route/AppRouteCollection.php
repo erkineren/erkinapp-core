@@ -6,6 +6,7 @@ namespace ErkinApp\Route;
 
 use ArrayIterator;
 use Countable;
+use ErkinApp\ErkinApp;
 use IteratorAggregate;
 use Symfony\Component\Routing\Route;
 use Symfony\Component\Routing\RouteCollection;
@@ -75,18 +76,18 @@ class AppRouteCollection implements IteratorAggregate, Countable
     public function registerRoutes()
     {
         foreach ($this->all() as $appRoute) {
-            ErkinApp()->Routes()->add($appRoute->getRoute()->getPath(), $appRoute->getRoute());
+            ErkinApp()->RouteCollection()->add($appRoute->getRoute()->getPath(), $appRoute->getRoute());
         }
     }
 
     public function registerRouteOnPath($path)
     {
-        ErkinApp()->Routes()->add($path, $this->get($path)->getRoute());
+        ErkinApp()->RouteCollection()->add($path, $this->get($path)->getRoute());
     }
 
     public function registerRouteViaRoute(Route $route)
     {
-        ErkinApp()->Routes()->add($route->getPath(), $route);
+        ErkinApp()->RouteCollection()->add($route->getPath(), $route);
     }
 
     public function registerRouteViaAppRoute(AppRoute $appRoute)

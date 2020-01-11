@@ -53,11 +53,6 @@ class ErkinApp implements HttpKernelInterface
     protected $container;
 
     /**
-     * @var RouteCollection
-     */
-    protected $routes;
-
-    /**
      * @var string
      */
     protected $currentArea = 'frontend';
@@ -89,7 +84,6 @@ class ErkinApp implements HttpKernelInterface
     private function __construct()
     {
         $this->container = new Container();
-        $this->routes = new RouteCollection();
     }
 
     /**
@@ -148,9 +142,9 @@ class ErkinApp implements HttpKernelInterface
     /**
      * @return RouteCollection
      */
-    public function Routes(): RouteCollection
+    public function RouteCollection(): RouteCollection
     {
-        return $this->routes;
+        return $this->Get(RouteCollection::class);
     }
 
     /**
@@ -355,7 +349,7 @@ class ErkinApp implements HttpKernelInterface
         $context = new RequestContext();
         $context->fromRequest($request);
 
-        $matcher = new UrlMatcher($this->routes, $context);
+        $matcher = new UrlMatcher($this->RouteCollection(), $context);
 
         try {
             $attributes = $matcher->match($request->getPathInfo());
@@ -446,7 +440,7 @@ class ErkinApp implements HttpKernelInterface
                 $this->Dispatcher()->dispatch(new ControllerActionEvent($ctrl, $method, $methodParameters, $request, $response), $controllerActionEventName . '::after');
                 $this->Dispatcher()->dispatch(new ControllerActionEvent($ctrl, $method, $methodParameters, $request, $response), $controllerEventName . '::after');
                 $this->Dispatcher()->dispatch(new ControllerActionEvent($ctrl, $method, $methodParameters, $request, $response), 'Application_Controller_' . $this->getCurrentArea() . '::after');
-                
+
             }
 
         } catch (ResourceNotFoundException $e1) {
@@ -471,7 +465,6 @@ class ErkinApp implements HttpKernelInterface
             else throw $e3;
 
         }
-
 
         $this->Dispatcher()->dispatch(new ResponseEvent($request, $response), Events::RESPONSE);
 
@@ -502,7 +495,7 @@ class ErkinApp implements HttpKernelInterface
      */
     public function map($path, $controller, array $requirements = [], array $options = [], ?string $host = '', $schemes = [], $methods = [], ?string $condition = '')
     {
-        $this->routes->add(
+        $this->RouteCollection()->add(
             $path,
             new Route(
                 $path,

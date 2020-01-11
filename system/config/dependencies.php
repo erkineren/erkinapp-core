@@ -12,6 +12,7 @@ use Monolog\Logger;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\Session;
+use Symfony\Component\Routing\RouteCollection;
 
 return function () {
     $container = ErkinApp()->Container();
@@ -24,6 +25,10 @@ return function () {
         return new Localization();
     };
 
+    $container[RouteCollection::class] = function (Container $c) {
+        return new RouteCollection();
+    };
+
     $container[EventDispatcher::class] = function (Container $c) {
         return new EventDispatcher();
     };
@@ -31,6 +36,7 @@ return function () {
     $container[Request::class] = function (Container $c) {
         $request = Request::createFromGlobals();
         $request->setSession(new Session());
+        $request->setLocale($c->getLocalization()->getCurrentLanguage());
         return $request;
     };
 
@@ -171,7 +177,17 @@ return function () {
                     $methodAnnotations = $annotationReader->getMethodAnnotations($method);
                     foreach ($methodAnnotations as $an) {
                         if ($an instanceof Symfony\Component\Routing\Annotation\Route) {
-                            $appRoute = $addRoute($an->getPath(), $method);
+//                            \ErkinApp\Helpers\debugPrint($an->getLocalizedPaths());
+
+                            $path = $an->getPath();
+                            if (!$path) {
+                                $localizedPaths = $an->getLocalizedPaths();
+                                $lang = ErkinApp()->Localization()->getCurrentLanguage();
+                                if (!isset($localizedPaths[$lang])) continue;
+                                $path = $localizedPaths[$lang];
+                            }
+
+                            $appRoute = $addRoute($path, $method);
                             $appRoute->resolveRouteObject(
                                 $an->getRequirements(),
                                 $an->getOptions(),
@@ -189,7 +205,7 @@ return function () {
 
         $routes = array_merge($routes, $routesLater);
         $routes = array_map('reset', $routes);
-//\ErkinApp\Helpers\debugPrint($routes);
+
         $appRouteCollection = new AppRouteCollection();
         foreach ($routes as $route) {
             $appRouteCollection->add($route);
