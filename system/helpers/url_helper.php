@@ -7,7 +7,7 @@ namespace ErkinApp\Helpers {
 
     function normalizeUrlPath($path)
     {
-        return str_replace('\\', '/', mb_strtolower($path));
+        return str_replace('\\', '/', $path);
     }
 
     function convertPublicPathToUrl($realpath, $revision = false)
