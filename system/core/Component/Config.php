@@ -4,6 +4,7 @@
 namespace ErkinApp\Component;
 
 use ErkinApp\Exception\ErkinAppException;
+use function ErkinApp\Helpers\debugPrint;
 use function ErkinApp\Helpers\isCommandLineInterface;
 
 class Config extends DotNotationParameters
@@ -35,7 +36,7 @@ class Config extends DotNotationParameters
 
     public function loadThemeConfig()
     {
-        $themeConfigFile = realpath(VIEW_PATH . '/' . $this->get('theme.name') . '/' . ErkinApp()->getCurrentArea() . '/theme.config.php');
+        $themeConfigFile = realpath(VIEW_PATH . '/' . $this->get('theme.name') . '/' . mb_strtolower(ErkinApp()->getCurrentArea()). '/theme.config.php');
         if ($themeConfigFile) {
             $themeConfig = include $themeConfigFile;
             $this->set('theme.config', $themeConfig);

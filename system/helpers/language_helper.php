@@ -21,16 +21,7 @@ namespace ErkinApp\Helpers {
         }
         return $_line;
     }
-
-    /**
-     * @return string|null
-     * @throws Exception
-     */
-    function getCurrentLangCode()
-    {
-        return ErkinApp()->Localization()->getCurrentLangCode();
-    }
-
+    
     /**
      * @return mixed
      * @throws Exception

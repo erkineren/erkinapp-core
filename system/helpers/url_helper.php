@@ -5,6 +5,27 @@ namespace ErkinApp\Helpers {
     use ErkinApp\ErkinApp;
     use Exception;
 
+    function normalizeUrlPath($path)
+    {
+        return str_replace('\\', '/', mb_strtolower($path));
+    }
+
+    function convertPublicPathToUrl($realpath, $revision = false)
+    {
+        if (strpos($realpath, PUBLIC_PATH) === false)
+            return '';
+
+        return siteUrl(str_replace(PUBLIC_PATH, '', $realpath));
+    }
+
+    function convertPublicPathToUrlPath($realpath, $revision = false)
+    {
+        if (strpos($realpath, PUBLIC_PATH) === false)
+            return '';
+
+        return str_replace(PUBLIC_PATH, '', $realpath);
+    }
+
     /**
      * @param string $path
      * @return string
@@ -13,7 +34,7 @@ namespace ErkinApp\Helpers {
     function siteUrl($path = '')
     {
         $request = ErkinApp::getInstance()->Request();
-        return $request->getSchemeAndHttpHost() . $request->getBasePath() . '/' . $path;
+        return $request->getSchemeAndHttpHost() . $request->getBasePath() . '/' . ltrim(normalizeUrlPath($path), '/');
     }
 
     /**
@@ -24,7 +45,7 @@ namespace ErkinApp\Helpers {
     function backendUrl($path = '')
     {
         $request = ErkinApp::getInstance()->Request();
-        return $request->getSchemeAndHttpHost() . $request->getBasePath() . '/' . BACKEND_AREA_NAME . '/' . $path;
+        return $request->getSchemeAndHttpHost() . $request->getBasePath() . '/' . BACKEND_AREA_NAME . '/' . ltrim(normalizeUrlPath($path), '/');
     }
 
     /**

@@ -29,4 +29,5 @@ return array_replace_recursive([
         ]
     ],
     'language' => 'tr',
+    'defaultLanguage' => 'tr',
 ], $customConfig);

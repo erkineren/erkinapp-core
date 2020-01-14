@@ -21,6 +21,7 @@ class SmartyTemplate extends Template
      */
     public function __construct()
     {
+        parent::__construct();
         $this->smarty = new Smarty();
         $this->configure();
     }
@@ -42,17 +43,11 @@ class SmartyTemplate extends Template
     }
 
     /**
-     * @return string
-     * @throws SmartyException
+     * @return Smarty
      */
-    public function resolve(): string
+    public function getSmarty(): Smarty
     {
-        foreach ($this->getData() as $key => $value) {
-            $this->smarty->assign($key, $value);
-        }
-
-
-        return $this->smarty->fetch($this->getFileFullPath());
+        return $this->smarty;
     }
 
     /**
@@ -61,5 +56,18 @@ class SmartyTemplate extends Template
     public function getFileExtension(): string
     {
         return '.tpl';
+    }
+
+    /**
+     * @return string
+     * @throws SmartyException
+     */
+    public function resolve(): string
+    {
+        foreach ($this->getData() as $key => $value) {
+            $this->smarty->assign($key, $value);
+        }
+        
+        return $this->smarty->fetch($this->getFileFullPath());
     }
 }

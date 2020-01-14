@@ -55,7 +55,7 @@ class ErkinApp implements HttpKernelInterface
     /**
      * @var string
      */
-    protected $currentArea = 'frontend';
+    protected $currentArea = 'Frontend';
 
     /**
      * @var Controller
@@ -380,7 +380,7 @@ class ErkinApp implements HttpKernelInterface
 
                 if (!method_exists($ctrl, $method)) {
                     /** @var NotFoundEvent $notFoundEvent */
-                    $notFoundEvent = $this->Dispatcher()->dispatch(new NotFoundEvent(), Events::NOT_FOUND);
+                    $notFoundEvent = $this->Dispatcher()->dispatch(new NotFoundEvent("Method ($method) is not exist."), Events::NOT_FOUND);
                     if ($notFoundEvent->hasResponse()) {
                         return $notFoundEvent->getResponse();
                     } else {

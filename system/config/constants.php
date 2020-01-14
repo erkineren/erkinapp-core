@@ -1,4 +1,11 @@
 <?php
+
+if (!defined('PUBLIC_PATH'))
+    define('PUBLIC_PATH', realpath(BASE_PATH . '/public'));
+
+if (!defined('PUBLIC_CAHCE_PATH'))
+    define('PUBLIC_CAHCE_PATH', realpath(PUBLIC_PATH . '/web/cache'));
+
 if (!defined('APP_PATH'))
     define('APP_PATH', realpath(BASE_PATH . '/app'));
 

@@ -180,22 +180,39 @@ return function () {
 //                            \ErkinApp\Helpers\debugPrint($an->getLocalizedPaths());
 
                             $path = $an->getPath();
-                            if (!$path) {
+                            if ($path) {
+                                $appRoute = $addRoute($path, $method);
+                                $appRoute->setIsAnnotationRoute(true);
+                                $appRoute->resolveRouteObject(
+                                    $an->getRequirements(),
+                                    $an->getOptions(),
+                                    $an->getHost(),
+                                    $an->getSchemes(),
+                                    $an->getMethods(),
+                                    $an->getCondition()
+                                );
+                            } else {
                                 $localizedPaths = $an->getLocalizedPaths();
-                                $lang = ErkinApp()->Localization()->getCurrentLanguage();
-                                if (!isset($localizedPaths[$lang])) continue;
-                                $path = $localizedPaths[$lang];
+//                                $lang = ErkinApp()->Localization()->getCurrentLanguage();
+//                                if (!isset($localizedPaths[$lang])) continue;
+//                                $path = $localizedPaths[$lang];
+                                foreach ($localizedPaths as $lang => $path) {
+                                    $appRoute = $addRoute($path, $method);
+                                    $appRoute->setIsAnnotationRoute(true);
+                                    $appRoute->setLang($lang);
+                                    $appRoute->resolveRouteObject(
+                                        $an->getRequirements(),
+                                        $an->getOptions(),
+                                        $an->getHost(),
+                                        $an->getSchemes(),
+                                        $an->getMethods(),
+                                        $an->getCondition()
+                                    );
+                                }
+
                             }
 
-                            $appRoute = $addRoute($path, $method);
-                            $appRoute->resolveRouteObject(
-                                $an->getRequirements(),
-                                $an->getOptions(),
-                                $an->getHost(),
-                                $an->getSchemes(),
-                                $an->getMethods(),
-                                $an->getCondition()
-                            );
+
                         }
                     }
                 }

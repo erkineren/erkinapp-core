@@ -5,7 +5,7 @@ namespace ErkinApp\Helpers {
     {
         echo '<pre>';
 
-        if (is_bool($data) || (is_string($data) && (is_null($data) || trim($data) === '')))
+        if (is_bool($data) || is_string($data) || is_null($data))
             var_dump($data);
         else
             print_r($data);

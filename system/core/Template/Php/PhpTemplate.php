@@ -5,7 +5,6 @@ namespace ErkinApp\Template\Php;
 use ErkinApp\Exception\ViewFileNotFoundException;
 use ErkinApp\Template\Template;
 use Exception;
-use function ErkinApp\Helpers\debugPrint;
 
 class PhpTemplate extends Template
 {
@@ -34,6 +33,14 @@ class PhpTemplate extends Template
 
     /**
      * @return string
+     */
+    public function getFileExtension(): string
+    {
+        return '.php';
+    }
+
+    /**
+     * @return string
      * @throws ViewFileNotFoundException
      * @throws Exception
      */
@@ -55,11 +62,4 @@ class PhpTemplate extends Template
         return ob_get_clean();
     }
 
-    /**
-     * @return string
-     */
-    public function getFileExtension(): string
-    {
-        return '.php';
-    }
 }

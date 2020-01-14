@@ -32,6 +32,16 @@ class AppRoute
     protected $route;
 
     /**
+     * @var string
+     */
+    protected $lang;
+
+    /**
+     * @var bool
+     */
+    protected $isAnnotationRoute = false;
+
+    /**
      * AppRoute constructor.
      * @param string $path
      * @param string $controllerClass
@@ -39,7 +49,7 @@ class AppRoute
      */
     public function __construct(string $path, string $controllerClass, string $methodName, $resolveRoute = true)
     {
-        $this->path = $path;
+        $this->path = mb_strtolower($path);
         $this->controllerClass = $controllerClass;
         $this->methodName = $methodName;
         $this->resolveArea();
@@ -134,7 +144,43 @@ class AppRoute
      */
     public function setRoute(Route $route): AppRoute
     {
-        $this->route = $route;
+        $this->route = mb_strtolower($route);
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getLang(): ?string
+    {
+        return $this->lang;
+    }
+
+    /**
+     * @param string $lang
+     * @return AppRoute
+     */
+    public function setLang(string $lang): AppRoute
+    {
+        $this->lang = $lang;
+        return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isAnnotationRoute(): bool
+    {
+        return $this->isAnnotationRoute;
+    }
+
+    /**
+     * @param bool $isAnnotationRoute
+     * @return AppRoute
+     */
+    public function setIsAnnotationRoute(bool $isAnnotationRoute): AppRoute
+    {
+        $this->isAnnotationRoute = $isAnnotationRoute;
         return $this;
     }
 

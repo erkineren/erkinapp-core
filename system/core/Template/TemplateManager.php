@@ -58,7 +58,7 @@ class TemplateManager
     {
         if (!ErkinApp()->getCurrentArea())
             throw new ErkinAppException("Empty area");
-        return realpath(VIEW_PATH . '/' . ErkinApp()->Config()->get('theme.name') . '/' . ErkinApp()->getCurrentArea());
+        return realpath(VIEW_PATH . '/' . ErkinApp()->Config()->get('theme.name') . '/' . mb_strtolower(ErkinApp()->getCurrentArea()));
     }
 
     /**

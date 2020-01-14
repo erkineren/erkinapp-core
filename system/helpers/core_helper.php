@@ -66,17 +66,23 @@ namespace ErkinApp\Helpers {
         $appRoute = $app->AppRoutes()->resolve(strtolower($request->getPathInfo()));
 
         if ($appRoute) {
+            if ($appRoute->isAnnotationRoute()) {
+                $langAppRoute = $app->AppRoutes()->findLanguageRoute($appRoute);
+                if ($langAppRoute) {
+                    (new RedirectResponse($langAppRoute->getPath()))->send();
+                }
+            }
+
             $app->AppRoutes()->registerRouteViaAppRoute($appRoute);
             $app->setCurrentAppRoute($appRoute);
         } else {
 
             if (strtolower($request->getPathInfo()) !== rtrim(strtolower($request->getPathInfo()), '/')) {
                 (new RedirectResponse(rtrim(strtolower($request->getRequestUri()), '/'), 308))->send();
-                die;
             }
 
             /** @var NotFoundEvent $notFoundEvent */
-            $notFoundEvent = $app->Dispatcher()->dispatch(new NotFoundEvent($request), Events::NOT_FOUND);
+            $notFoundEvent = $app->Dispatcher()->dispatch(new NotFoundEvent('Route not found "' . $request->getPathInfo() . '"', $request), Events::NOT_FOUND);
             if ($notFoundEvent->hasResponse()) {
                 $notFoundEvent->getResponse()->send();
             } else {

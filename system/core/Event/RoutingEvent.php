@@ -19,4 +19,15 @@ class RoutingEvent extends BaseEvent
         ErkinApp()->AppRoutes()->add(AppRoute::fromRouteParams($path, array_merge(['controller' => $controller], $defaults), $requirements, $options, $host, $schemes, $methods, $condition));
     }
 
+    public function mapControllerLanguages(array $languagePaths, $controller, array $defaults = [], array $requirements = [], array $options = [], ?string $host = '', $schemes = [], $methods = [], ?string $condition = '')
+    {
+        foreach ($languagePaths as $lang => $languagePath) {
+            $appRoute = AppRoute::fromRouteParams($languagePath, array_merge(['controller' => $controller], $defaults), $requirements, $options, $host, $schemes, $methods, $condition);
+            $appRoute->setLang($lang);
+            $appRoute->setIsAnnotationRoute(true);
+            ErkinApp()->AppRoutes()->add($appRoute);
+        }
+
+    }
+
 }

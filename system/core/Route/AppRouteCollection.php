@@ -6,7 +6,6 @@ namespace ErkinApp\Route;
 
 use ArrayIterator;
 use Countable;
-use ErkinApp\ErkinApp;
 use IteratorAggregate;
 use Symfony\Component\Routing\Route;
 use Symfony\Component\Routing\RouteCollection;
@@ -94,4 +93,44 @@ class AppRouteCollection implements IteratorAggregate, Countable
     {
         $this->registerRouteViaRoute($appRoute->getRoute());
     }
+
+    public function findLanguageRoute(AppRoute $appRoute): ?AppRoute
+    {
+        $lang = ErkinApp()->Localization()->getCurrentLanguage();
+
+        if ($lang != $appRoute->getLang()) {
+            foreach ($this->all() as $appRouteItem) {
+                if ($appRouteItem->getControllerClass() == $appRoute->getControllerClass() && $appRouteItem->getMethodName() == $appRoute->getMethodName() && $appRouteItem->getLang() == $lang) {
+                    return $appRouteItem;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    public function findRouteFromPath(string $path): ?AppRoute
+    {
+        $path = mb_strtolower($path);
+        foreach ($this->all() as $appRouteItem) {
+            if ($appRouteItem->getPath() == $path) {
+                return $appRouteItem;
+            }
+        }
+        return null;
+    }
+
+    public function findLanguagePath(string $path): ?string
+    {
+        $path = mb_strtolower($path);
+        $lang = ErkinApp()->Localization()->getCurrentLanguage();
+        $appRoute = $this->findRouteFromPath($path);
+        if ($appRoute) {
+            $appLangRoute = $this->findLanguageRoute($appRoute);
+            if ($appLangRoute)
+                return $appLangRoute->getPath();
+        }
+        return null;
+    }
+
 }

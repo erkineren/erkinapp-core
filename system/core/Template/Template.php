@@ -8,6 +8,7 @@ use ErkinApp\Event\NotFoundEvent;
 use ErkinApp\Exception\ViewFileNotFoundException;
 use Exception;
 use Symfony\Component\HttpFoundation\Response;
+use function ErkinApp\Helpers\convertPublicPathToUrlPath;
 
 abstract class Template implements ITemplate
 {
@@ -21,17 +22,24 @@ abstract class Template implements ITemplate
      */
     private $data;
 
-
     /**
-     * @param string $filename
-     * @param array $data
-     * @return self
+     * @var AssetManager
      */
-    public function prepare(string $filename, array $data): ITemplate
+    private $assetManager;
+
+    public function __construct()
     {
-        $this->filename = $filename;
-        $this->data = $data;
-        return $this;
+        $this->assetManager = new AssetManager($this);
+    }
+
+    public function getName(): string
+    {
+        return ErkinApp()->Config()->get('theme.name');
+    }
+
+    public function getArea(): string
+    {
+        return mb_strtolower(ErkinApp()->getCurrentArea());
     }
 
     /**
@@ -76,7 +84,39 @@ abstract class Template implements ITemplate
      */
     public function getTemplatePath(): string
     {
-        return realpath(VIEW_PATH . '/' . ErkinApp()->Config()->get('theme.name') . '/' . ErkinApp()->getCurrentArea());
+        return realpath(VIEW_PATH . '/' . $this->getName() . '/' . $this->getArea());
+    }
+
+    /**
+     * @return string
+     */
+    public function getThemeAssetsPath(): string
+    {
+        return realpath(PUBLIC_PATH . '/web/assets/themes/' . $this->getName() . '/' . $this->getArea());
+    }
+
+    /**
+     * @return string
+     */
+    public function getThemeAssetsUrlPath(): string
+    {
+        return convertPublicPathToUrlPath($this->getThemeAssetsPath());
+    }
+
+    /**
+     * @return string
+     */
+    public function getCommonAssetsPath(): string
+    {
+        return realpath(PUBLIC_PATH . '/web/assets/common');
+    }
+
+    /**
+     * @return string
+     */
+    public function getCommonAssetsUrlPath(): string
+    {
+        return convertPublicPathToUrlPath($this->getCommonAssetsPath());
     }
 
     /**
@@ -90,7 +130,7 @@ abstract class Template implements ITemplate
 
         if (!file_exists($f)) {
             /** @var NotFoundEvent $notFoundEvent */
-            $notFoundEvent = ErkinApp()->Dispatcher()->dispatch(new NotFoundEvent(), Events::NOT_FOUND);
+            $notFoundEvent = ErkinApp()->Dispatcher()->dispatch(new NotFoundEvent("Template file not found at $f"), Events::NOT_FOUND);
             if ($notFoundEvent->hasResponse()) {
                 $notFoundEvent->getResponse()->send();
                 die;
@@ -100,6 +140,23 @@ abstract class Template implements ITemplate
         }
 
         return $f;
+    }
+
+    public function getAssetManager(): AssetManager
+    {
+        return $this->assetManager;
+    }
+
+    /**
+     * @param string $filename
+     * @param array $data
+     * @return self
+     */
+    public function prepare(string $filename, array $data): ITemplate
+    {
+        $this->filename = $filename;
+        $this->data = $data;
+        return $this;
     }
 
     /**
